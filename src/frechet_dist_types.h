@@ -5,11 +5,17 @@
 #include <stdint.h>
 
 typedef enum {
+	PASSANT = 1,
+	TANGENT,
+	SECANT,
+} FD_line_circle_intersection;
+
+typedef enum {
 	ENTRY_LEFT = 1<<0,
 	ENTRY_BOTTOM = 1<<1,
 	EXIT_RIGHT = 1<<2,
 	EXIT_TOP = 1<<3,
-}FD_fsp_entrybits;
+}FD_fsp_entry_exit_bits;
 
 typedef enum {
 	FSP_ENTRY_BOTH_EXIT_BOTH,
