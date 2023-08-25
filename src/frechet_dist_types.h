@@ -5,12 +5,6 @@
 #include <stdint.h>
 
 typedef enum {
-	PASSANT = 1,
-	TANGENT,
-	SECANT,
-} FD_line_circle_intersection;
-
-typedef enum {
 	ENTRY_LEFT = 1<<0,
 	ENTRY_BOTTOM = 1<<1,
 	EXIT_RIGHT = 1<<2,
