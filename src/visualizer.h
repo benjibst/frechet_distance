@@ -3,7 +3,7 @@
 
 #include "raylib.h"
 #include "raygui.h"
-#include "geometry.h"
+#include "frechet_dist.h"
 #include <stdio.h>
 
 #define WINDOW_X 800

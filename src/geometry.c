@@ -44,20 +44,20 @@ FD_line_circle_intersection CircleLineIntersection(FD_point center, FD_float eps
 	return SECANT;
 }
 
-bool IsPointInSegment(FD_point p, FD_segment seg) {
-	FD_float dxseg = seg.p2.x - seg.p1.x;
-	FD_float dyseg = seg.p2.y - seg.p1.y;
-	FD_float dxp = p.x - seg.p1.x;
-	FD_float dyp = p.y - seg.p1.y;
-	FD_float dxratio = dxp / dxseg;
-	FD_float dyratio = dyp / dyseg;
-	// tolerance determined empirically such that points calculated by circle line
-	// intersection will return true
-	return (Abs(dxratio - dyratio) < 0.000001 && dxratio <= 1 && dxratio >= 0 &&
-			dyratio >= 0 && dyratio <= 1);
+// assumes that the point p lies along the line seg and
+// returns how far along the line the point is.
+// if p is equal to seg.p2 returns 1, if p is equal to seg.p1 returns 0
+FD_float PointToParameterSpace(FD_point p, FD_segment seg) {
+	FD_float seglen = Hypot(seg.p2.x - seg.p1.x, seg.p2.y - seg.p1.y);
+	FD_float p_to_p1_len = Hypot(p.x - seg.p1.x, p.y - seg.p1.y);
+	FD_float lenratio = p_to_p1_len / seglen;
+	if ((p.x < seg.p1.x && seg.p2.x > seg.p1.x) || (p.y < seg.p1.y && seg.p2.y > seg.p1.y))
+		lenratio = -lenratio;
+	return lenratio;
 }
 
-FD_point PointAlongSegment(FD_segment seg, FD_float p) {
+// if p is 0 returns seg.p1. if p is 1 returns seg.p2.
+FD_point ParameterSpaceToPoint(FD_segment seg, FD_float p) {
 	return (FD_point){seg.p1.x * (1.0 - p) + seg.p2.x * p,
 					  seg.p1.y * (1.0 - p) + seg.p2.y * p};
 }
