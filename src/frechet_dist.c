@@ -1,26 +1,24 @@
 #include "frechet_dist.h"
-//https://mathworld.wolfram.com/Circle-LineIntersection.html
 
 static inline int Sign(FD_float f)
 {
 	return (f>=0)-(f<0);
 }
-
+//https://mathworld.wolfram.com/Circle-LineIntersection.html
 FD_line_circle_intersection CircleLineIntersection(FD_point center,FD_float eps,FD_segment seg,FD_point* p1,FD_point* p2)
 {
-	FD_float orthdist = OrthogonalDistance(center,seg)<eps;
+	FD_float orthdist = OrthogonalDistance(center,seg);
 	if(orthdist>eps)
 		return PASSANT;
 	seg.p1.x-=center.x; //shift the points because calculation assumes the circle is centered at [0 | 0]
 	seg.p2.x-=center.x;
 	seg.p1.y-=center.y;
-	seg.p2.x-=center.y;
+	seg.p2.y-=center.y;
 	FD_float dx = seg.p2.x - seg.p1.x;
 	FD_float dy = seg.p2.y - seg.p1.y;
 	FD_float drsquared = dx*dx+dy*dy;
 	FD_float D = seg.p1.x*seg.p2.y-seg.p2.x*seg.p1.y;
-	FD_float disc = eps*eps*drsquared-D*D;
-	FD_float sqrtdisc = FD_sqrt(disc);
+	FD_float sqrtdisc = FD_sqrt(eps*eps*drsquared-D*D);
 	if(orthdist == eps)
 	{
 		p1->x = (D*dy)/drsquared + center.x;

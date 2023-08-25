@@ -3,6 +3,10 @@
 #include "raygui.h"
 #undef RAYGUI_IMPLEMENTATION
 
+#ifndef __WIN32__
+#define min(x,y) ((x)<(y)?(x):(y))
+#endif
+
 void InitGUI()
 {
 	SetConfigFlags(FLAG_WINDOW_RESIZABLE);
