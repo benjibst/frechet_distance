@@ -2,22 +2,11 @@
 
 void GetFreespace(FD_segment P, FD_segment Q, FD_float eps,
 						 FD_freespace *const fsp) {
-	FD_fsp_entry_exit_bits entry_exit = 0;
-	entry_exit |= (GetFreeSpaceOneSide(P.p1,Q,eps,&(fsp->a_ij),&(fsp->b_ij)))*ENTRY_LEFT;
-	entry_exit |= (GetFreeSpaceOneSide(Q.p1,P,eps,&(fsp->c_ij),&(fsp->d_ij)))*ENTRY_BOTTOM;
-	//if both entry bits are 0
-	if((entry_exit&FSP_NO_ENTRY) == entry_exit){
-		fsp->pass = FSP_NO_ENTRY; //return entry not possible
-		return;
-	}
-	entry_exit |= (GetFreeSpaceOneSide(P.p2,Q,eps,&(fsp->a_ip1j),&(fsp->b_ip1j)))*EXIT_RIGHT;
-	entry_exit |= (GetFreeSpaceOneSide(Q.p2,P,eps,&(fsp->c_ijp1),&(fsp->d_ijp1)))*EXIT_TOP;
-	//if both exit bits are 0
-	if((entry_exit&FSP_NO_EXIT) == entry_exit){
-		fsp->pass = FSP_NO_ENTRY; //return exit not possible
-		return;
-	}
-	fsp->pass = (FD_fsp_pass)entry_exit;
+	fsp->pass = 0;
+	fsp->pass |= (GetFreeSpaceOneSide(P.p1,Q,eps,&(fsp->a_ij),&(fsp->b_ij)))*ENTRY_LEFT;
+	fsp->pass |= (GetFreeSpaceOneSide(Q.p1,P,eps,&(fsp->c_ij),&(fsp->d_ij)))*ENTRY_BOTTOM;
+	fsp->pass |= (GetFreeSpaceOneSide(P.p2,Q,eps,&(fsp->a_ip1j),&(fsp->b_ip1j)))*EXIT_RIGHT;
+	fsp->pass |= (GetFreeSpaceOneSide(Q.p2,P,eps,&(fsp->c_ijp1),&(fsp->d_ijp1)))*EXIT_TOP;
 }
 
 bool GetFreeSpaceOneSide(FD_point p, FD_segment seg, FD_float eps,

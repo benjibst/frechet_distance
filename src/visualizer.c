@@ -77,32 +77,36 @@ static void CalcGui()
 
 static void DrawParameterSpaceRangeOnSeg(FD_segment freespace_rect_edge, FD_float range_begin, FD_float range_end)
 {
-	FD_point p1 = ParameterSpaceToPoint(freespace_rect_edge, range_begin);
-	FD_point p2 = ParameterSpaceToPoint(freespace_rect_edge, range_end);
-	DrawLineEx((Vector2){p1.x, p1.y}, (Vector2){p2.x, p2.y}, 3, DARKGREEN);
+	if (range_begin == range_end) // if the 2 points are the same draw a dot instead of a line(0 length line will be invisible)
+	{
+		FD_point p1 = ParameterSpaceToPoint(freespace_rect_edge, range_begin);
+		DrawRectangle(p1.x-3, p1.y-3, 3, 3, DARKGREEN);
+	}
+	else
+	{
+		FD_point p1 = ParameterSpaceToPoint(freespace_rect_edge, range_begin);
+		FD_point p2 = ParameterSpaceToPoint(freespace_rect_edge, range_end);
+		DrawLineEx((Vector2){p1.x, p1.y}, (Vector2){p2.x, p2.y}, 3, DARKGREEN);
+	}
 }
 
 static void DrawFreeSpace(const FD_freespace *const fsp)
 {
-	// if freespace is invalid fill with red
-	if (fsp->pass == FSP_NO_ENTRY || fsp->pass == FSP_NO_EXIT)
-		DrawRectangle(fsp_rect.x, fsp_rect.y, fsp_rect.width,
-					  fsp_rect.height, RED);
 	if (fsp->pass & ENTRY_LEFT)
-		DrawParameterSpaceRangeOnSeg(fsp_rect_edge_left,fsp->a_ij,fsp->b_ij);
+		DrawParameterSpaceRangeOnSeg(fsp_rect_edge_left, fsp->a_ij, fsp->b_ij);
 	if (fsp->pass & ENTRY_BOTTOM)
-		DrawParameterSpaceRangeOnSeg(fsp_rect_edge_bottom,fsp->c_ij,fsp->d_ij);
+		DrawParameterSpaceRangeOnSeg(fsp_rect_edge_bottom, fsp->c_ij, fsp->d_ij);
 	if (fsp->pass & EXIT_TOP)
-		DrawParameterSpaceRangeOnSeg(fsp_rect_edge_top,fsp->c_ijp1,fsp->d_ijp1);
+		DrawParameterSpaceRangeOnSeg(fsp_rect_edge_top, fsp->c_ijp1, fsp->d_ijp1);
 	if (fsp->pass & EXIT_RIGHT)
-		DrawParameterSpaceRangeOnSeg(fsp_rect_edge_right,fsp->a_ip1j,fsp->b_ip1j);
+		DrawParameterSpaceRangeOnSeg(fsp_rect_edge_right, fsp->a_ip1j, fsp->b_ip1j);
 }
 
 void VisualizeSegments(FD_segment P, FD_segment Q)
 {
 	int eps = 0;
 	bool eps_editing = false;
-	FD_freespace fsp;
+	FD_freespace fsp = {0};
 	while (!WindowShouldClose())
 	{
 		CalcGui();
@@ -122,9 +126,10 @@ void VisualizeSegments(FD_segment P, FD_segment Q)
 		DrawFreeSpace(&fsp);
 		DrawLineEx((Vector2){P.p1.x, P.p1.y}, (Vector2){P.p2.x, P.p2.y}, 3, BEIGE);
 		DrawLineEx((Vector2){Q.p1.x, Q.p1.y}, (Vector2){Q.p2.x, Q.p2.y}, 3, PURPLE);
-		DrawCircle(pointP.x, pointP.y, 4, GREEN);
-		DrawCircle(pointQ.x, pointQ.y, 4, GREEN);
-		DrawCircleLines(pointP.x, pointP.y, eps, GREEN);
+		DrawCircle(pointP.x, pointP.y, 4, DARKGRAY);
+		DrawCircle(pointQ.x, pointQ.y, 4, DARKGREEN);
+		Color c = Hypot(pointP.x-pointQ.x,pointP.y-pointQ.y)>eps?RED:GREEN;
+		DrawCircleLines(pointP.x, pointP.y, eps, c);
 		EndDrawing();
 	}
 }
