@@ -63,10 +63,7 @@ static void CalcGui()
 			(float)(mouse.x - fsp_rect.x) / (float)fsp_rect.width;
 		mouse_fsp.y =
 			1.0f - (float)(mouse.y - fsp_rect.y) / (float)fsp_rect.height;
-		if (snprintf(freespace_label_text, sizeof(freespace_label_text), "[%.2f | %.2f]",
-					 mouse_fsp.x, mouse_fsp.y))
-		{
-		}
+		sprintf_s(freespace_label_text,sizeof(freespace_label_text),"[%.2f | %.2f]",mouse_fsp.x, mouse_fsp.y);
 	}
 	else
 		freespace_label_text[0] = 0;
