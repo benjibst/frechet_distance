@@ -11,6 +11,6 @@
 #define WINDOW_NAME "Frechet distance"
 
 void InitGUI();
-void VisualizeSegments(FD_segment P, FD_segment Q);
+void VisualizeSegments();
 
 #endif // __VISUALIZER_H__
