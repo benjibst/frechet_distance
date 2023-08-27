@@ -6,10 +6,6 @@
 #include "frechet_dist.h"
 #include <stdio.h>
 
-#define WINDOW_X 800
-#define WINDOW_Y 500
-#define WINDOW_NAME "Frechet distance"
-
 void InitGUI();
 void VisualizeSegments();
 

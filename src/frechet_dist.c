@@ -1,23 +1,30 @@
 #include "frechet_dist.h"
 
 void GetFreespace(FD_segment P, FD_segment Q, FD_float eps,
-						 FD_freespace *const fsp) {
+				  FD_freespace *const fsp)
+{
 	fsp->pass = 0;
-	fsp->pass |= (GetFreeSpaceOneSide(P.p1,Q,eps,&(fsp->a_ij),&(fsp->b_ij)))*ENTRY_LEFT;
-	fsp->pass |= (GetFreeSpaceOneSide(Q.p1,P,eps,&(fsp->c_ij),&(fsp->d_ij)))*ENTRY_BOTTOM;
-	fsp->pass |= (GetFreeSpaceOneSide(P.p2,Q,eps,&(fsp->a_ip1j),&(fsp->b_ip1j)))*EXIT_RIGHT;
-	fsp->pass |= (GetFreeSpaceOneSide(Q.p2,P,eps,&(fsp->c_ijp1),&(fsp->d_ijp1)))*EXIT_TOP;
+	//0 and 1 correspond to a_ij and b_ij
+	fsp->pass |= (GetFreeSpaceOneSide(P.p1, Q, eps, &(fsp->fsp_vertices[0]), &(fsp->fsp_vertices[1]))) * ENTRY_LEFT;
+	fsp->pass |= (GetFreeSpaceOneSide(Q.p2, P, eps, &(fsp->fsp_vertices[2]), &(fsp->fsp_vertices[3]))) * EXIT_TOP;
+	//4 is b_ij+1 5 is a_ij+1
+	fsp->pass |= (GetFreeSpaceOneSide(P.p2, Q, eps, &(fsp->fsp_vertices[5]), &(fsp->fsp_vertices[4]))) * EXIT_RIGHT;
+	fsp->pass |= (GetFreeSpaceOneSide(Q.p1, P, eps, &(fsp->fsp_vertices[7]), &(fsp->fsp_vertices[6]))) * ENTRY_BOTTOM;
+
 }
 
 bool GetFreeSpaceOneSide(FD_point p, FD_segment seg, FD_float eps,
-						 FD_float *fsp_entry_range_begin, FD_float *fsp_entry_range_end) {
+						 FD_float *fsp_entry_range_begin, FD_float *fsp_entry_range_end)
+{
 	FD_point p1, p2;
-	switch (CircleLineIntersection(p, eps, seg, &p1, &p2)) {
+	switch (CircleLineIntersection(p, eps, seg, &p1, &p2))
+	{
 	case PASSANT:
 		return false;
 	case TANGENT:
 		FD_float scal = PointToParameterSpace(p1, seg);
-		if (scal >= 0 && scal <= 1) {
+		if (scal >= 0 && scal <= 1)
+		{
 			*fsp_entry_range_begin = scal;
 			*fsp_entry_range_end = scal;
 			return true;
@@ -26,7 +33,7 @@ bool GetFreeSpaceOneSide(FD_point p, FD_segment seg, FD_float eps,
 	case SECANT:
 		FD_float scal1 = PointToParameterSpace(p1, seg);
 		FD_float scal2 = PointToParameterSpace(p2, seg);
-		if(scal1>scal2) //swap if order is wrong
+		if (scal1 > scal2) // swap if order is wrong
 		{
 			FD_float tmp = scal1;
 			scal1 = scal2;
