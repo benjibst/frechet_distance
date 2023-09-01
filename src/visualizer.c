@@ -52,7 +52,7 @@ static void CalcGui()
 		fsp_panel_rect.x + ((fsp_panel_rect.width - fsp_side) / 2),
 		(window.height - fsp_side) / 2, fsp_side, fsp_side};
 	fsp_rect_edges[0] = (FD_segment){{fsp_rect.x + LINE_THICK / 2, fsp_rect.y + fsp_rect.height}, {fsp_rect.x + LINE_THICK / 2, fsp_rect.y}};
-	fsp_rect_edges[1] = (FD_segment){{fsp_rect.x, fsp_rect.y + LINE_THICK / 2}, {fsp_rect.x + fsp_rect.width, fsp_rect.y + LINE_THICK / 2}};
+	fsp_rect_edges[1] = (FD_segment){{fsp_rect.x + LINE_THICK / 2, fsp_rect.y + LINE_THICK / 2}, {fsp_rect.x + fsp_rect.width - LINE_THICK / 2, fsp_rect.y + LINE_THICK / 2}};
 	fsp_rect_edges[2] = (FD_segment){{fsp_rect.x + fsp_rect.width - LINE_THICK / 2, fsp_rect.y + fsp_rect.height}, {fsp_rect.x + fsp_rect.width - LINE_THICK / 2, fsp_rect.y + LINE_THICK / 2}};
 	fsp_rect_edges[3] = (FD_segment){{fsp_rect.x + LINE_THICK / 2, fsp_rect.y + fsp_rect.height - LINE_THICK / 2}, {fsp_rect.x + fsp_rect.width - LINE_THICK / 2, fsp_rect.y + fsp_rect.height - LINE_THICK / 2}};
 	if (IsMouseInRectangle(fsp_rect))
@@ -98,12 +98,12 @@ static void DrawFreeSpace(const FD_freespace *const fsp)
 		fsp_poly_vert[i] = ParameterSpaceToPoint(fsp_rect_edges[fsp_poly_vertices[i].fsp_rect_edge], fsp_poly_vertices[i].fsp_poly_vert_paramspace);
 		DrawCircle(fsp_poly_vert[i].x, fsp_poly_vert[i].y, 4, RED);
 	}
-	for (size_t i = 0; i < index - 1; i++)
+/* 	for (size_t i = 0; i < index - 1; i++)
 		DrawLineEx((Vector2){fsp_poly_vert[i].x, fsp_poly_vert[i].y}, (Vector2){fsp_poly_vert[i + 1].x, fsp_poly_vert[i + 1].y}, LINE_THICK, DARKGREEN);
 	// if the polygon is at least a triangle, connect the last point to the first point
 	if (index > 2)
 		DrawLineEx((Vector2){fsp_poly_vert[index - 1].x, fsp_poly_vert[index - 1].y}, (Vector2){fsp_poly_vert[0].x, fsp_poly_vert[0].y}, LINE_THICK, DARKGREEN);
-}
+ */}
 
 void VisualizeSegments()
 {
@@ -111,8 +111,8 @@ void VisualizeSegments()
 	bool eps_editing = false;
 	bool P_initialized = false, Q_initialized = false;
 	bool P_editing = false, Q_editing = false;
-	FD_segment P, Q;
-	FD_point pointP, pointQ;
+	FD_segment P = {0}, Q = {0};
+	FD_point pointP = {0}, pointQ = {0};
 	Color P_color = BEIGE;
 	Color Q_color = PURPLE;
 	Color P_color_editing = {P_color.r, P_color.g, P_color.b, P_color.a / 2};
@@ -130,6 +130,7 @@ void VisualizeSegments()
 				P.p2 = (FD_point){mouse.x, mouse.y};
 				if (Q_initialized)
 					GetFreespace(P, Q, eps, &fsp);
+				printf("P:[%.2f | %.2f]->[%.2f | %.2f]    Q:[%.2f | %.2f]->[%.2f | %.2f]\n", P.p1.x, P.p1.y, P.p2.x, P.p2.y, Q.p1.x, Q.p1.y, Q.p2.x, Q.p2.y);
 			}
 			P_initialized = P_editing;
 			P_editing = !P_editing;
@@ -143,6 +144,7 @@ void VisualizeSegments()
 				Q.p2 = (FD_point){mouse.x, mouse.y};
 				if (P_initialized)
 					GetFreespace(P, Q, eps, &fsp);
+				printf("P:[%.2f | %.2f]->[%.2f | %.2f]    Q:[%.2f | %.2f]->[%.2f | %.2f]\n", P.p1.x, P.p1.y, P.p2.x, P.p2.y, Q.p1.x, Q.p1.y, Q.p2.x, Q.p2.y);
 			}
 			Q_initialized = Q_editing;
 			Q_editing = !Q_editing;

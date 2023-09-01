@@ -10,7 +10,6 @@ void GetFreespace(FD_segment P, FD_segment Q, FD_float eps,
 	//4 is b_ij+1 5 is a_ij+1
 	fsp->pass |= (GetFreeSpaceOneSide(P.p2, Q, eps, &(fsp->fsp_vertices[5]), &(fsp->fsp_vertices[4]))) * EXIT_RIGHT;
 	fsp->pass |= (GetFreeSpaceOneSide(Q.p1, P, eps, &(fsp->fsp_vertices[7]), &(fsp->fsp_vertices[6]))) * ENTRY_BOTTOM;
-
 }
 
 bool GetFreeSpaceOneSide(FD_point p, FD_segment seg, FD_float eps,
