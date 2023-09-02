@@ -5,7 +5,7 @@
 
 const int WINDOW_X = 800;
 const int WINDOW_Y = 500;
-const float LINE_THICK = 4;
+const float LINE_THICK = 6;
 const char *const WINDOW_NAME = "Frechet distance";
 
 void InitGUI()
@@ -51,9 +51,9 @@ static void CalcGui()
 	fsp_rect = (Rectangle){
 		fsp_panel_rect.x + ((fsp_panel_rect.width - fsp_side) / 2),
 		(window.height - fsp_side) / 2, fsp_side, fsp_side};
-	fsp_rect_edges[0] = (FD_segment){{fsp_rect.x + LINE_THICK / 2, fsp_rect.y + fsp_rect.height}, {fsp_rect.x + LINE_THICK / 2, fsp_rect.y}};
+	fsp_rect_edges[0] = (FD_segment){{fsp_rect.x + LINE_THICK / 2, fsp_rect.y + fsp_rect.height - LINE_THICK / 2}, {fsp_rect.x + LINE_THICK / 2, fsp_rect.y + LINE_THICK / 2}};
 	fsp_rect_edges[1] = (FD_segment){{fsp_rect.x + LINE_THICK / 2, fsp_rect.y + LINE_THICK / 2}, {fsp_rect.x + fsp_rect.width - LINE_THICK / 2, fsp_rect.y + LINE_THICK / 2}};
-	fsp_rect_edges[2] = (FD_segment){{fsp_rect.x + fsp_rect.width - LINE_THICK / 2, fsp_rect.y + fsp_rect.height}, {fsp_rect.x + fsp_rect.width - LINE_THICK / 2, fsp_rect.y + LINE_THICK / 2}};
+	fsp_rect_edges[2] = (FD_segment){{fsp_rect.x + fsp_rect.width - LINE_THICK / 2, fsp_rect.y + fsp_rect.height - LINE_THICK / 2}, {fsp_rect.x + fsp_rect.width - LINE_THICK / 2, fsp_rect.y + LINE_THICK / 2}};
 	fsp_rect_edges[3] = (FD_segment){{fsp_rect.x + LINE_THICK / 2, fsp_rect.y + fsp_rect.height - LINE_THICK / 2}, {fsp_rect.x + fsp_rect.width - LINE_THICK / 2, fsp_rect.y + fsp_rect.height - LINE_THICK / 2}};
 	if (IsMouseInRectangle(fsp_rect))
 	{
@@ -98,12 +98,12 @@ static void DrawFreeSpace(const FD_freespace *const fsp)
 		fsp_poly_vert[i] = ParameterSpaceToPoint(fsp_rect_edges[fsp_poly_vertices[i].fsp_rect_edge], fsp_poly_vertices[i].fsp_poly_vert_paramspace);
 		DrawCircle(fsp_poly_vert[i].x, fsp_poly_vert[i].y, 4, RED);
 	}
-/* 	for (size_t i = 0; i < index - 1; i++)
+	for (size_t i = 0; i < index - 1; i++)
 		DrawLineEx((Vector2){fsp_poly_vert[i].x, fsp_poly_vert[i].y}, (Vector2){fsp_poly_vert[i + 1].x, fsp_poly_vert[i + 1].y}, LINE_THICK, DARKGREEN);
 	// if the polygon is at least a triangle, connect the last point to the first point
 	if (index > 2)
 		DrawLineEx((Vector2){fsp_poly_vert[index - 1].x, fsp_poly_vert[index - 1].y}, (Vector2){fsp_poly_vert[0].x, fsp_poly_vert[0].y}, LINE_THICK, DARKGREEN);
- */}
+}
 
 void VisualizeSegments()
 {
