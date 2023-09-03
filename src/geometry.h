@@ -37,8 +37,8 @@ typedef enum {
 } FD_line_circle_intersection;
 
 FD_float OrthogonalDistance(FD_point p, FD_segment seg);
-FD_point ParameterSpaceToPoint(FD_segment seg, FD_float p); //norm goes from 0 to 1
+FD_point ParameterToPoint(FD_segment seg, FD_float p); //norm goes from 0 to 1
 FD_line_circle_intersection CircleLineIntersection(FD_point center,FD_float eps,FD_segment seg,FD_point* p1,FD_point* p2);
-FD_float PointToParameterSpace(FD_point p, FD_segment);
+FD_float PointToParameter(FD_point p, FD_segment);
 
 #endif // __GEOMETRY_H__

@@ -21,7 +21,7 @@ bool GetFreeSpaceOneSide(FD_point p, FD_segment seg, FD_float eps,
 	case PASSANT:
 		return false;
 	case TANGENT:
-		FD_float scal = PointToParameterSpace(p1, seg);
+		FD_float scal = PointToParameter(p1, seg);
 		if (scal >= 0 && scal <= 1)
 		{
 			*fsp_entry_range_begin = scal;
@@ -30,8 +30,8 @@ bool GetFreeSpaceOneSide(FD_point p, FD_segment seg, FD_float eps,
 		}
 		return false;
 	case SECANT:
-		FD_float scal1 = PointToParameterSpace(p1, seg);
-		FD_float scal2 = PointToParameterSpace(p2, seg);
+		FD_float scal1 = PointToParameter(p1, seg);
+		FD_float scal2 = PointToParameter(p2, seg);
 		if (scal1 > scal2) // swap if order is wrong
 		{
 			FD_float tmp = scal1;

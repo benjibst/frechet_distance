@@ -6,7 +6,7 @@
 const int WINDOW_X = 800;
 const int WINDOW_Y = 500;
 const float LINE_THICK = 6;
-const char *const WINDOW_NAME = "Frechet distance";
+const char* const WINDOW_NAME = "Frechet distance";
 
 void InitGUI()
 {
@@ -35,7 +35,7 @@ char freespace_label_text[14];
 static inline bool IsMouseInRectangle(Rectangle rect)
 {
 	return mouse.x >= rect.x && mouse.x <= rect.x + rect.width && mouse.y >= rect.y &&
-		   mouse.y <= rect.y + rect.height;
+		mouse.y <= rect.y + rect.height;
 }
 
 static void CalcGui()
@@ -43,18 +43,18 @@ static void CalcGui()
 	mouse = GetMousePosition();
 	window.width = GetScreenWidth();
 	window.height = GetScreenHeight();
-	curves_panel_rect = (Rectangle){0, 0, window.width / 2, window.height};
+	curves_panel_rect = (Rectangle){ 0, 0, window.width / 2, window.height };
 	fsp_panel_rect =
-		(Rectangle){window.width / 2, 0, window.width / 2, window.height};
+		(Rectangle){ window.width / 2, 0, window.width / 2, window.height };
 	int fsp_side =
 		Min(fsp_panel_rect.width, fsp_panel_rect.height) * 0.8f;
 	fsp_rect = (Rectangle){
 		fsp_panel_rect.x + ((fsp_panel_rect.width - fsp_side) / 2),
-		(window.height - fsp_side) / 2, fsp_side, fsp_side};
-	fsp_rect_edges[0] = (FD_segment){{fsp_rect.x + LINE_THICK / 2, fsp_rect.y + fsp_rect.height - LINE_THICK / 2}, {fsp_rect.x + LINE_THICK / 2, fsp_rect.y + LINE_THICK / 2}};
-	fsp_rect_edges[1] = (FD_segment){{fsp_rect.x + LINE_THICK / 2, fsp_rect.y + LINE_THICK / 2}, {fsp_rect.x + fsp_rect.width - LINE_THICK / 2, fsp_rect.y + LINE_THICK / 2}};
-	fsp_rect_edges[2] = (FD_segment){{fsp_rect.x + fsp_rect.width - LINE_THICK / 2, fsp_rect.y + fsp_rect.height - LINE_THICK / 2}, {fsp_rect.x + fsp_rect.width - LINE_THICK / 2, fsp_rect.y + LINE_THICK / 2}};
-	fsp_rect_edges[3] = (FD_segment){{fsp_rect.x + LINE_THICK / 2, fsp_rect.y + fsp_rect.height - LINE_THICK / 2}, {fsp_rect.x + fsp_rect.width - LINE_THICK / 2, fsp_rect.y + fsp_rect.height - LINE_THICK / 2}};
+		(window.height - fsp_side) / 2, fsp_side, fsp_side };
+	fsp_rect_edges[0] = (FD_segment){ {fsp_rect.x + LINE_THICK / 2, fsp_rect.y + fsp_rect.height - LINE_THICK / 2}, {fsp_rect.x + LINE_THICK / 2, fsp_rect.y + LINE_THICK / 2} };
+	fsp_rect_edges[1] = (FD_segment){ {fsp_rect.x + LINE_THICK / 2, fsp_rect.y + LINE_THICK / 2}, {fsp_rect.x + fsp_rect.width - LINE_THICK / 2, fsp_rect.y + LINE_THICK / 2} };
+	fsp_rect_edges[2] = (FD_segment){ {fsp_rect.x + fsp_rect.width - LINE_THICK / 2, fsp_rect.y + fsp_rect.height - LINE_THICK / 2}, {fsp_rect.x + fsp_rect.width - LINE_THICK / 2, fsp_rect.y + LINE_THICK / 2} };
+	fsp_rect_edges[3] = (FD_segment){ {fsp_rect.x + LINE_THICK / 2, fsp_rect.y + fsp_rect.height - LINE_THICK / 2}, {fsp_rect.x + fsp_rect.width - LINE_THICK / 2, fsp_rect.y + fsp_rect.height - LINE_THICK / 2} };
 	if (IsMouseInRectangle(fsp_rect))
 	{
 		mouse_fsp.x =
@@ -65,12 +65,12 @@ static void CalcGui()
 	}
 	else
 		freespace_label_text[0] = 0;
-	fsp_label_rect = (Rectangle){fsp_rect.x, fsp_rect.y - 30, 100, 20};
+	fsp_label_rect = (Rectangle){ fsp_rect.x, fsp_rect.y - 30, 100, 20 };
 	eps_valuebox_rect = (Rectangle){
-		fsp_rect.x, fsp_rect.y + fsp_rect.height + 10, 80, 20};
+		fsp_rect.x, fsp_rect.y + fsp_rect.height + 10, 80, 20 };
 }
 
-static void DrawFreeSpace(const FD_freespace *const fsp)
+static void DrawFreeSpace(const FD_freespace* const fsp)
 {
 	struct
 	{
@@ -78,7 +78,7 @@ static void DrawFreeSpace(const FD_freespace *const fsp)
 		int fsp_rect_edge;
 	} fsp_poly_vertices[8];
 	FD_point fsp_poly_vert[9];
-	int index = 0;
+	unsigned index = 0;
 	// for all 4 edges of the free space diagram
 	for (size_t i = 0; i < 4; i++)
 	{ // if entry or exit from that edge is possible
@@ -93,16 +93,15 @@ static void DrawFreeSpace(const FD_freespace *const fsp)
 	if (!index)
 		return;
 	// now the number of vertices is stored in index and we convert
-	for (size_t i = 0; i < index; i++)
-	{
-		fsp_poly_vert[i] = ParameterSpaceToPoint(fsp_rect_edges[fsp_poly_vertices[i].fsp_rect_edge], fsp_poly_vertices[i].fsp_poly_vert_paramspace);
-		DrawCircle(fsp_poly_vert[i].x, fsp_poly_vert[i].y, 4, RED);
+	for (unsigned i = 0; i < index; i++) {
+		fsp_poly_vert[i] = ParameterToPoint(fsp_rect_edges[fsp_poly_vertices[i].fsp_rect_edge], fsp_poly_vertices[i].fsp_poly_vert_paramspace);
+		DrawCircle(fsp_poly_vert[i].x, fsp_poly_vert[i].y, LINE_THICK, RED);
 	}
-	for (size_t i = 0; i < index - 1; i++)
-		DrawLineEx((Vector2){fsp_poly_vert[i].x, fsp_poly_vert[i].y}, (Vector2){fsp_poly_vert[i + 1].x, fsp_poly_vert[i + 1].y}, LINE_THICK, DARKGREEN);
+	for (unsigned i = 0; i < index - 1; i++)
+		DrawLineEx((Vector2) { fsp_poly_vert[i].x, fsp_poly_vert[i].y }, (Vector2) { fsp_poly_vert[i + 1].x, fsp_poly_vert[i + 1].y }, LINE_THICK, DARKGREEN);
 	// if the polygon is at least a triangle, connect the last point to the first point
 	if (index > 2)
-		DrawLineEx((Vector2){fsp_poly_vert[index - 1].x, fsp_poly_vert[index - 1].y}, (Vector2){fsp_poly_vert[0].x, fsp_poly_vert[0].y}, LINE_THICK, DARKGREEN);
+		DrawLineEx((Vector2) { fsp_poly_vert[index - 1].x, fsp_poly_vert[index - 1].y }, (Vector2) { fsp_poly_vert[0].x, fsp_poly_vert[0].y }, LINE_THICK, DARKGREEN);
 }
 
 void VisualizeSegments()
@@ -111,26 +110,25 @@ void VisualizeSegments()
 	bool eps_editing = false;
 	bool P_initialized = false, Q_initialized = false;
 	bool P_editing = false, Q_editing = false;
-	FD_segment P = {0}, Q = {0};
-	FD_point pointP = {0}, pointQ = {0};
+	FD_segment P = { 0 }, Q = { 0 };
+	FD_point pointP = { 0 }, pointQ = { 0 };
 	Color P_color = BEIGE;
 	Color Q_color = PURPLE;
-	Color P_color_editing = {P_color.r, P_color.g, P_color.b, P_color.a / 2};
-	Color Q_color_editing = {Q_color.r, Q_color.g, Q_color.b, Q_color.a / 2};
-	FD_freespace fsp = {0};
+	Color P_color_editing = { P_color.r, P_color.g, P_color.b, P_color.a / 2 };
+	Color Q_color_editing = { Q_color.r, Q_color.g, Q_color.b, Q_color.a / 2 };
+	FD_freespace fsp = { 0 };
 	while (!WindowShouldClose())
 	{
 		CalcGui();
 		if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && IsMouseInRectangle(curves_panel_rect) && !Q_editing)
 		{
 			if (!P_editing)
-				P.p1 = (FD_point){mouse.x, mouse.y};
+				P.p1 = (FD_point){ mouse.x, mouse.y };
 			else
 			{
-				P.p2 = (FD_point){mouse.x, mouse.y};
+				P.p2 = (FD_point){ mouse.x, mouse.y };
 				if (Q_initialized)
 					GetFreespace(P, Q, eps, &fsp);
-				printf("P:[%.2f | %.2f]->[%.2f | %.2f]    Q:[%.2f | %.2f]->[%.2f | %.2f]\n", P.p1.x, P.p1.y, P.p2.x, P.p2.y, Q.p1.x, Q.p1.y, Q.p2.x, Q.p2.y);
 			}
 			P_initialized = P_editing;
 			P_editing = !P_editing;
@@ -138,21 +136,20 @@ void VisualizeSegments()
 		if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT) && IsMouseInRectangle(curves_panel_rect) && !P_editing)
 		{
 			if (!Q_editing)
-				Q.p1 = (FD_point){mouse.x, mouse.y};
+				Q.p1 = (FD_point){ mouse.x, mouse.y };
 			else
 			{
-				Q.p2 = (FD_point){mouse.x, mouse.y};
+				Q.p2 = (FD_point){ mouse.x, mouse.y };
 				if (P_initialized)
 					GetFreespace(P, Q, eps, &fsp);
-				printf("P:[%.2f | %.2f]->[%.2f | %.2f]    Q:[%.2f | %.2f]->[%.2f | %.2f]\n", P.p1.x, P.p1.y, P.p2.x, P.p2.y, Q.p1.x, Q.p1.y, Q.p2.x, Q.p2.y);
 			}
 			Q_initialized = Q_editing;
 			Q_editing = !Q_editing;
 		}
 		if (P_initialized && Q_initialized)
 		{
-			pointP = ParameterSpaceToPoint(P, mouse_fsp.x);
-			pointQ = ParameterSpaceToPoint(Q, mouse_fsp.y);
+			pointP = ParameterToPoint(P, mouse_fsp.x);
+			pointQ = ParameterToPoint(Q, mouse_fsp.y);
 		}
 		BeginDrawing();
 		GuiPanel(fsp_panel_rect, "Free Space");
@@ -166,13 +163,13 @@ void VisualizeSegments()
 		}
 		DrawRectangleLinesEx(fsp_rect, LINE_THICK, SKYBLUE);
 		if (P_initialized)
-			DrawLineEx((Vector2){P.p1.x, P.p1.y}, (Vector2){P.p2.x, P.p2.y}, LINE_THICK, P_color);
+			DrawLineEx((Vector2) { P.p1.x, P.p1.y }, (Vector2) { P.p2.x, P.p2.y }, LINE_THICK, P_color);
 		else if (P_editing)
-			DrawLineEx((Vector2){P.p1.x, P.p1.y}, (Vector2){mouse.x, mouse.y}, LINE_THICK, P_color_editing);
+			DrawLineEx((Vector2) { P.p1.x, P.p1.y }, (Vector2) { mouse.x, mouse.y }, LINE_THICK, P_color_editing);
 		if (Q_initialized)
-			DrawLineEx((Vector2){Q.p1.x, Q.p1.y}, (Vector2){Q.p2.x, Q.p2.y}, LINE_THICK, Q_color);
+			DrawLineEx((Vector2) { Q.p1.x, Q.p1.y }, (Vector2) { Q.p2.x, Q.p2.y }, LINE_THICK, Q_color);
 		else if (Q_editing)
-			DrawLineEx((Vector2){Q.p1.x, Q.p1.y}, (Vector2){mouse.x, mouse.y}, LINE_THICK, Q_color_editing);
+			DrawLineEx((Vector2) { Q.p1.x, Q.p1.y }, (Vector2) { mouse.x, mouse.y }, LINE_THICK, Q_color_editing);
 		if (P_initialized && Q_initialized)
 		{
 			DrawFreeSpace(&fsp);
