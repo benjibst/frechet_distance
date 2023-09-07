@@ -7,6 +7,6 @@
 #include <stdio.h>
 
 void InitGUI();
-void VisualizeSegments();
+void RunVisualizer();
 
 #endif // __VISUALIZER_H__

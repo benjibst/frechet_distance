@@ -12,24 +12,21 @@ void InitGUI()
 {
 	SetConfigFlags(FLAG_WINDOW_RESIZABLE);
 	InitWindow(WINDOW_X, WINDOW_Y, WINDOW_NAME);
-	SetTargetFPS(60);
+	SetTargetFPS(144);
 	GuiSetStyle(DEFAULT, TEXT_SIZE, 20);
 }
 
 /////////////////////////////////////////gui data
 Rectangle curves_panel_rect;
 Rectangle fsp_panel_rect;
-Rectangle fsp_rect;
-FD_segment fsp_rect_edges[4];
 Rectangle fsp_label_rect;
 Rectangle eps_valuebox_rect;
+Rectangle fsp_grid_rect;
 struct
 {
 	int width, height;
-} window;
+} window_sz;
 Vector2 mouse;
-Vector2 mouse_fsp;
-char freespace_label_text[14];
 ///////////////////////////////////////////////////
 
 static inline bool IsMouseInRectangle(Rectangle rect)
@@ -41,46 +38,41 @@ static inline bool IsMouseInRectangle(Rectangle rect)
 static void CalcGui()
 {
 	mouse = GetMousePosition();
-	window.width = GetScreenWidth();
-	window.height = GetScreenHeight();
-	curves_panel_rect = (Rectangle){ 0, 0, window.width / 2, window.height };
+	window_sz.width = GetScreenWidth();
+	window_sz.height = GetScreenHeight();
+	curves_panel_rect = (Rectangle){ 0.0f, 0.0f, window_sz.width / 2.0f, window_sz.height };
 	fsp_panel_rect =
-		(Rectangle){ window.width / 2, 0, window.width / 2, window.height };
-	int fsp_side =
-		Min(fsp_panel_rect.width, fsp_panel_rect.height) * 0.8f;
-	fsp_rect = (Rectangle){
-		fsp_panel_rect.x + ((fsp_panel_rect.width - fsp_side) / 2),
-		(window.height - fsp_side) / 2, fsp_side, fsp_side };
-	fsp_rect_edges[0] = (FD_segment){ {fsp_rect.x + LINE_THICK / 2, fsp_rect.y + fsp_rect.height - LINE_THICK / 2}, {fsp_rect.x + LINE_THICK / 2, fsp_rect.y + LINE_THICK / 2} };
-	fsp_rect_edges[1] = (FD_segment){ {fsp_rect.x + LINE_THICK / 2, fsp_rect.y + LINE_THICK / 2}, {fsp_rect.x + fsp_rect.width - LINE_THICK / 2, fsp_rect.y + LINE_THICK / 2} };
-	fsp_rect_edges[2] = (FD_segment){ {fsp_rect.x + fsp_rect.width - LINE_THICK / 2, fsp_rect.y + fsp_rect.height - LINE_THICK / 2}, {fsp_rect.x + fsp_rect.width - LINE_THICK / 2, fsp_rect.y + LINE_THICK / 2} };
-	fsp_rect_edges[3] = (FD_segment){ {fsp_rect.x + LINE_THICK / 2, fsp_rect.y + fsp_rect.height - LINE_THICK / 2}, {fsp_rect.x + fsp_rect.width - LINE_THICK / 2, fsp_rect.y + fsp_rect.height - LINE_THICK / 2} };
-	if (IsMouseInRectangle(fsp_rect))
-	{
-		mouse_fsp.x =
-			(mouse.x - fsp_rect.x) / fsp_rect.width;
-		mouse_fsp.y =
-			1.0f - (mouse.y - fsp_rect.y) / fsp_rect.height;
-		sprintf_s(freespace_label_text, sizeof(freespace_label_text), "[%.2f | %.2f]", mouse_fsp.x, mouse_fsp.y);
-	}
-	else
-		freespace_label_text[0] = 0;
-	fsp_label_rect = (Rectangle){ fsp_rect.x, fsp_rect.y - 30, 100, 20 };
-	eps_valuebox_rect = (Rectangle){
-		fsp_rect.x, fsp_rect.y + fsp_rect.height + 10, 80, 20 };
+		(Rectangle){ window_sz.width / 2.0f, 0.0f, window_sz.width / 2.0f, window_sz.height };
+	eps_valuebox_rect = (Rectangle){ fsp_panel_rect.x + fsp_panel_rect.width - 50,fsp_panel_rect.y,50,RAYGUI_WINDOWBOX_STATUSBAR_HEIGHT };
 }
 
-static void DrawFreeSpace(const FD_freespace* const fsp)
+
+static void DrawFreeSpaceCell(const FD_freespace_cell* const fsp, Rectangle base)
 {
+	FD_point base_vert[4] = {
+		{base.x,base.y + base.height},				//bottom left
+		{base.x,base.y},							//top left
+		{base.x + base.width,base.y},				//top right
+		{base.x + base.width,base.y + base.height}	//bottom right
+	};
+	FD_segment base_edges[4] = {
+		{base_vert + 0,base_vert + 1}, //left
+		{base_vert + 1,base_vert + 2}, //top
+		{base_vert + 3,base_vert + 2}, //right
+		{base_vert + 0,base_vert + 3}  //bottom
+	};
 	struct
 	{
 		FD_float fsp_poly_vert_paramspace;
-		int fsp_rect_edge;
+		uint32_t fsp_rect_edge;
 	} fsp_poly_vertices[8];
-	FD_point fsp_poly_vert[9];
-	unsigned index = 0;
+	FD_point fsp_poly_vert[8];
+	uint32_t index = 0;
+
+	DrawRectangleLinesEx(base, 1, SKYBLUE);
+
 	// for all 4 edges of the free space diagram
-	for (size_t i = 0; i < 4; i++)
+	for (uint32_t i = 0; i < 4; i++)
 	{ // if entry or exit from that edge is possible
 		if (fsp->pass & (FD_fsp_entry_exit_bits)(1 << i))
 		{ // add the respective points to the polygon vertices and increase index for next points
@@ -92,91 +84,130 @@ static void DrawFreeSpace(const FD_freespace* const fsp)
 	}
 	if (!index)
 		return;
-	// now the number of vertices is stored in index and we convert
-	for (unsigned i = 0; i < index; i++) {
-		fsp_poly_vert[i] = ParameterToPoint(fsp_rect_edges[fsp_poly_vertices[i].fsp_rect_edge], fsp_poly_vertices[i].fsp_poly_vert_paramspace);
-		DrawCircle(fsp_poly_vert[i].x, fsp_poly_vert[i].y, LINE_THICK, RED);
+	// now the number of verticess is stored in index and we convert
+	for (uint32_t i = 0; i < index; i++) {
+		fsp_poly_vert[i] = ParameterToPoint(base_edges[fsp_poly_vertices[i].fsp_rect_edge], fsp_poly_vertices[i].fsp_poly_vert_paramspace);
 	}
-	for (unsigned i = 0; i < index - 1; i++)
-		DrawLineEx((Vector2) { fsp_poly_vert[i].x, fsp_poly_vert[i].y }, (Vector2) { fsp_poly_vert[i + 1].x, fsp_poly_vert[i + 1].y }, LINE_THICK, DARKGREEN);
+	for (uint32_t i = 0; i < index - 1; i++)
+		DrawLine(fsp_poly_vert[i].x, fsp_poly_vert[i].y, fsp_poly_vert[i + 1].x, fsp_poly_vert[i + 1].y, DARKGREEN);
 	// if the polygon is at least a triangle, connect the last point to the first point
 	if (index > 2)
-		DrawLineEx((Vector2) { fsp_poly_vert[index - 1].x, fsp_poly_vert[index - 1].y }, (Vector2) { fsp_poly_vert[0].x, fsp_poly_vert[0].y }, LINE_THICK, DARKGREEN);
+		DrawLine(fsp_poly_vert[index - 1].x, fsp_poly_vert[index - 1].y, fsp_poly_vert[0].x, fsp_poly_vert[0].y, DARKGREEN);
 }
 
-void VisualizeSegments()
+static void DrawFreeSpaceGrid(FD_freespace_cell_grid grid, Rectangle parent_wnd)
+{
+	if (!grid.n_segments_P || !grid.n_segments_Q)
+		return;
+	int max_side_len_rect = Min(parent_wnd.width, (parent_wnd.height - RAYGUI_WINDOWBOX_STATUSBAR_HEIGHT));
+	float cellratio = (float)grid.n_segments_P / grid.n_segments_Q;
+	const float width_ratio = 0.9f;
+	if (grid.n_segments_P > grid.n_segments_Q)
+	{
+		fsp_grid_rect.width = width_ratio * max_side_len_rect;
+		fsp_grid_rect.height = fsp_grid_rect.width / cellratio;
+	}
+	else
+	{
+		fsp_grid_rect.height = width_ratio * max_side_len_rect;
+		fsp_grid_rect.width = fsp_grid_rect.height * cellratio;
+	}
+	fsp_grid_rect.x = parent_wnd.x + (parent_wnd.width - fsp_grid_rect.width) / 2;
+	fsp_grid_rect.y = parent_wnd.y + (parent_wnd.height - fsp_grid_rect.height + RAYGUI_WINDOWBOX_STATUSBAR_HEIGHT) / 2;
+	int fsp_width = fsp_grid_rect.width / grid.n_segments_P;
+	int fsp_height = fsp_grid_rect.height / grid.n_segments_Q;
+	for (size_t i = 0; i < grid.n_segments_P; i++)
+	{
+		int fsp_x = fsp_grid_rect.x + i * fsp_width;
+		for (size_t j = 0; j < grid.n_segments_Q; j++)
+		{
+			int fsp_y = fsp_grid_rect.y + (grid.n_segments_Q - j - 1) * fsp_height;
+			Rectangle fsp_cell_base = { fsp_x,fsp_y,fsp_width,fsp_height };
+			DrawFreeSpaceCell(grid.cells + (i * grid.n_segments_Q + j), fsp_cell_base);
+		}
+	}
+}
+
+static void DrawPQPoints(FD_curve P, FD_curve Q,FD_float eps)
+{
+	float pos_x_in_fsp_rect = mouse.x - fsp_grid_rect.x;
+	float pos_y_in_fsp_rect = fsp_grid_rect.height + fsp_grid_rect.y - mouse.y; //in this case .y is the top side so add height
+	float fsp_cell_width = fsp_grid_rect.width / P.n_segments;
+	float fsp_cell_height = fsp_grid_rect.height / Q.n_segments;
+	uint32_t P_index = pos_x_in_fsp_rect / fsp_cell_width;
+	uint32_t Q_index = pos_y_in_fsp_rect / fsp_cell_height;
+	float cell_x = fsp_grid_rect.x + P_index * fsp_cell_width;
+	float cell_y = fsp_grid_rect.y + fsp_grid_rect.height - Q_index * fsp_cell_height;
+	float pos_x_in_cell = (mouse.x - cell_x) / fsp_cell_width;
+	float pos_y_in_cell = (cell_y - mouse.y) / fsp_cell_height; //in this case it is the bottom side so no need to add height
+	FD_point point_P = ParameterToPoint((FD_segment) {P.points + P_index, P.points + P_index + 1}, pos_x_in_cell);
+	FD_point point_Q = ParameterToPoint((FD_segment) { Q.points + Q_index, Q.points + Q_index + 1 }, pos_y_in_cell);
+	DrawCircle(point_P.x, point_P.y, 5, DARKGREEN);
+	DrawCircle(point_Q.x, point_Q.y, 5, DARKGREEN);
+	Color c = Hypot(point_P.x - point_Q.x, point_P.y - point_Q.y) > eps ? RED : GREEN;
+	DrawCircleLines(point_P.x, point_P.y, eps, c);
+}
+
+void RunVisualizer()
 {
 	int eps = 0;
-	bool eps_editing = false;
-	bool P_initialized = false, Q_initialized = false;
-	bool P_editing = false, Q_editing = false;
-	FD_segment P = { 0 }, Q = { 0 };
+	bool eps_editing = false, recalc_grid = false;
+	FD_curve P = AllocateCurve(10), Q = AllocateCurve(10);
+	FD_freespace_cell_grid grid = { 0 };
 	FD_point pointP = { 0 }, pointQ = { 0 };
 	Color P_color = BEIGE;
 	Color Q_color = PURPLE;
 	Color P_color_editing = { P_color.r, P_color.g, P_color.b, P_color.a / 2 };
 	Color Q_color_editing = { Q_color.r, Q_color.g, Q_color.b, Q_color.a / 2 };
-	FD_freespace fsp = { 0 };
+	FD_freespace_cell fsp = { 0 };
 	while (!WindowShouldClose())
 	{
 		CalcGui();
-		if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && IsMouseInRectangle(curves_panel_rect) && !Q_editing)
+		if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && IsMouseInRectangle(curves_panel_rect))
 		{
-			if (!P_editing)
-				P.p1 = (FD_point){ mouse.x, mouse.y };
-			else
-			{
-				P.p2 = (FD_point){ mouse.x, mouse.y };
-				if (Q_initialized)
-					GetFreespace(P, Q, eps, &fsp);
-			}
-			P_initialized = P_editing;
-			P_editing = !P_editing;
+			AddPointToCurve(&P, (FD_point) { mouse.x, mouse.y });
+			recalc_grid = true;
 		}
-		if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT) && IsMouseInRectangle(curves_panel_rect) && !P_editing)
+		if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT) && IsMouseInRectangle(curves_panel_rect))
 		{
-			if (!Q_editing)
-				Q.p1 = (FD_point){ mouse.x, mouse.y };
-			else
-			{
-				Q.p2 = (FD_point){ mouse.x, mouse.y };
-				if (P_initialized)
-					GetFreespace(P, Q, eps, &fsp);
-			}
-			Q_initialized = Q_editing;
-			Q_editing = !Q_editing;
+			AddPointToCurve(&Q, (FD_point) { mouse.x, mouse.y });
+			recalc_grid = true;
 		}
-		if (P_initialized && Q_initialized)
+		if (IsKeyPressed(KEY_X)) //reset curves
 		{
-			pointP = ParameterToPoint(P, mouse_fsp.x);
-			pointQ = ParameterToPoint(Q, mouse_fsp.y);
+			Q.n_points = 0;
+			P.n_points = 0;
+			Q.n_segments = 0;
+			P.n_segments = 0;
+			recalc_grid = true;
 		}
 		BeginDrawing();
 		GuiPanel(fsp_panel_rect, "Free Space");
 		GuiPanel(curves_panel_rect, "Segments");
-		GuiLabel(fsp_label_rect, freespace_label_text);
-		if (GuiValueBox(eps_valuebox_rect, NULL, &eps, 0, 100000, eps_editing))
+		if (GuiValueBox(eps_valuebox_rect, NULL, &eps, 0, 10000, eps_editing))
 		{
-			if (eps_editing && P_initialized && Q_initialized)
-				GetFreespace(P, Q, eps, &fsp);
+			if (eps_editing)
+				recalc_grid = true;
 			eps_editing = !eps_editing;
 		}
-		DrawRectangleLinesEx(fsp_rect, LINE_THICK, SKYBLUE);
-		if (P_initialized)
-			DrawLineEx((Vector2) { P.p1.x, P.p1.y }, (Vector2) { P.p2.x, P.p2.y }, LINE_THICK, P_color);
-		else if (P_editing)
-			DrawLineEx((Vector2) { P.p1.x, P.p1.y }, (Vector2) { mouse.x, mouse.y }, LINE_THICK, P_color_editing);
-		if (Q_initialized)
-			DrawLineEx((Vector2) { Q.p1.x, Q.p1.y }, (Vector2) { Q.p2.x, Q.p2.y }, LINE_THICK, Q_color);
-		else if (Q_editing)
-			DrawLineEx((Vector2) { Q.p1.x, Q.p1.y }, (Vector2) { mouse.x, mouse.y }, LINE_THICK, Q_color_editing);
-		if (P_initialized && Q_initialized)
+		for (long long i = 0; i < ((long long)P.n_points) - 1; i++)
 		{
-			DrawFreeSpace(&fsp);
-			DrawCircle(pointP.x, pointP.y, 4, DARKGRAY);
-			DrawCircle(pointQ.x, pointQ.y, 4, DARKGREEN);
-			Color c = Hypot(pointP.x - pointQ.x, pointP.y - pointQ.y) > eps ? RED : GREEN;
-			DrawCircleLines(pointP.x, pointP.y, eps, c);
+			DrawLineEx((Vector2) { P.points[i].x, P.points[i].y }, (Vector2) { P.points[i + 1].x, P.points[i + 1].y }, 2, BEIGE);
+		}
+		for (long long i = 0; i < ((long long)Q.n_points) - 1; i++)
+		{
+			DrawLineEx((Vector2) { Q.points[i].x, Q.points[i].y }, (Vector2) { Q.points[i + 1].x, Q.points[i + 1].y }, 2, PURPLE);
+		}
+		if (P.n_segments >= 1 && Q.n_segments >= 1)
+		{
+			if (recalc_grid)
+			{
+				GetFreespaceCellGrid(P, Q, eps, &grid);
+				recalc_grid = false;
+			}
+			if (IsMouseInRectangle(fsp_grid_rect))
+				DrawPQPoints(P, Q, eps);
+			DrawFreeSpaceGrid(grid, fsp_panel_rect);
 		}
 		EndDrawing();
 	}
