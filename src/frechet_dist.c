@@ -27,7 +27,7 @@ void GetFreespaceCellGrid(FD_curve P, FD_curve Q, FD_float eps, FD_freespace_cel
 		for (size_t j = 0; j < Q.n_segments; j++)
 		{
 			FD_segment seg_Q = { Q.points + j,Q.points + j + 1 };
-			GetFreespaceCell(seg_P, seg_Q, eps, grid->cells + (i * Q.n_points) + j); //store cells [P|Q] [0|0][0|1]...[0|Q.n-1][1|0]
+			GetFreespaceCell(seg_P, seg_Q, eps, grid->cells + i * Q.n_segments + j); //store cells [P|Q] [0|0][0|1]...[0|Q.n-1][1|0]
 		}
 	}
 }

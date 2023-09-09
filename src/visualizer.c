@@ -95,11 +95,11 @@ static void DrawFreeSpaceCell(const FD_freespace_cell* const fsp, Rectangle base
 		DrawLine(fsp_poly_vert[index - 1].x, fsp_poly_vert[index - 1].y, fsp_poly_vert[0].x, fsp_poly_vert[0].y, DARKGREEN);
 }
 
-static void DrawFreeSpaceGrid(FD_freespace_cell_grid grid, Rectangle parent_wnd)
+static void DrawFreeSpaceGrid(FD_freespace_cell_grid grid)
 {
 	if (!grid.n_segments_P || !grid.n_segments_Q)
 		return;
-	int max_side_len_rect = Min(parent_wnd.width, (parent_wnd.height - RAYGUI_WINDOWBOX_STATUSBAR_HEIGHT));
+	int max_side_len_rect = Min(fsp_panel_rect.width, (fsp_panel_rect.height - RAYGUI_WINDOWBOX_STATUSBAR_HEIGHT));
 	float cellratio = (float)grid.n_segments_P / grid.n_segments_Q;
 	const float width_ratio = 0.9f;
 	if (grid.n_segments_P > grid.n_segments_Q)
@@ -112,8 +112,8 @@ static void DrawFreeSpaceGrid(FD_freespace_cell_grid grid, Rectangle parent_wnd)
 		fsp_grid_rect.height = width_ratio * max_side_len_rect;
 		fsp_grid_rect.width = fsp_grid_rect.height * cellratio;
 	}
-	fsp_grid_rect.x = parent_wnd.x + (parent_wnd.width - fsp_grid_rect.width) / 2;
-	fsp_grid_rect.y = parent_wnd.y + (parent_wnd.height - fsp_grid_rect.height + RAYGUI_WINDOWBOX_STATUSBAR_HEIGHT) / 2;
+	fsp_grid_rect.x = fsp_panel_rect.x + (fsp_panel_rect.width - fsp_grid_rect.width) / 2;
+	fsp_grid_rect.y = fsp_panel_rect.y + (fsp_panel_rect.height - fsp_grid_rect.height + RAYGUI_WINDOWBOX_STATUSBAR_HEIGHT) / 2;
 	int fsp_width = fsp_grid_rect.width / grid.n_segments_P;
 	int fsp_height = fsp_grid_rect.height / grid.n_segments_Q;
 	for (size_t i = 0; i < grid.n_segments_P; i++)
@@ -207,7 +207,7 @@ void RunVisualizer()
 			}
 			if (IsMouseInRectangle(fsp_grid_rect))
 				DrawPQPoints(P, Q, eps);
-			DrawFreeSpaceGrid(grid, fsp_panel_rect);
+			DrawFreeSpaceGrid(grid);
 		}
 		EndDrawing();
 	}
