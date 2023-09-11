@@ -154,12 +154,6 @@ void RunVisualizer()
 	bool eps_editing = false, recalc_grid = false;
 	FD_curve P = AllocateCurve(10), Q = AllocateCurve(10);
 	FD_freespace_cell_grid grid = { 0 };
-	FD_point pointP = { 0 }, pointQ = { 0 };
-	Color P_color = BEIGE;
-	Color Q_color = PURPLE;
-	Color P_color_editing = { P_color.r, P_color.g, P_color.b, P_color.a / 2 };
-	Color Q_color_editing = { Q_color.r, Q_color.g, Q_color.b, Q_color.a / 2 };
-	FD_freespace_cell fsp = { 0 };
 	while (!WindowShouldClose())
 	{
 		CalcGui();
