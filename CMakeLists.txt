@@ -13,7 +13,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE raygui/src)
 
 target_link_libraries(${PROJECT_NAME} raylib)
 if(MSVC)
-  target_compile_options(${TARGET_NAME} PRIVATE /W4 /WX)
+  target_compile_options(${PROJECT_NAME} PRIVATE /W4)
 else()
   target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic)
 endif()
