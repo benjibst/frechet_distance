@@ -1,5 +1,6 @@
 #include "frechet_dist.h"
 #include <assert.h>
+#include <time.h>
 
 void FreeSpaceCellGridMaybeAlloc(FD_freespace_cell_grid* grid, uint32_t n_P, uint32_t n_Q)
 {
@@ -20,6 +21,7 @@ void FreeSpaceCellGridMaybeAlloc(FD_freespace_cell_grid* grid, uint32_t n_P, uin
 
 void GetFreespaceCellGrid(FD_curve P, FD_curve Q, FD_float eps, FD_freespace_cell_grid* grid)
 {
+	time_t t1 = clock();
 	FreeSpaceCellGridMaybeAlloc(grid, P.n_segments, Q.n_segments);
 	for (size_t i = 0; i < P.n_segments; i++)
 	{
@@ -30,6 +32,8 @@ void GetFreespaceCellGrid(FD_curve P, FD_curve Q, FD_float eps, FD_freespace_cel
 			GetFreespaceCell(seg_P, seg_Q, eps, grid->cells + i * Q.n_segments + j); //store cells [P|Q] [0|0][0|1]...[0|Q.n-1][1|0]
 		}
 	}
+	time_t t2 = clock();
+	printf("Computing fsp grid: %f\n",(float)(t2-t1)/CLOCKS_PER_SEC);
 }
 
 void GetFreespaceCell(FD_segment P, FD_segment Q, FD_float eps,
