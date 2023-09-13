@@ -1,59 +1,63 @@
 #include "frechet_dist.h"
-#include <assert.h>
-#include <time.h>
 
-void FreeSpaceCellGridMaybeAlloc(FD_freespace_cell_grid* grid, uint32_t n_P, uint32_t n_Q)
+void FreeSpaceEdgesMaybeAlloc(FD_freespace_edge_data *edge_data, uint32_t n_points_P, uint32_t n_points_Q)
 {
-	if (n_P * n_Q > grid->cap)
+	size_t n_edges = (n_points_P - 1) * n_points_Q + (n_points_Q - 1) * n_points_P;
+	if (n_edges > edge_data->cap)
 	{
-		grid->cap = n_P * n_Q * 2;
-		grid->cells = malloc(sizeof(FD_freespace_cell) * grid->cap);
-		if (!grid->cells)
+		edge_data->cap = 2 * n_edges;
+		edge_data->edges = malloc(edge_data->cap * sizeof(FD_freespace_edge));
+		edge_data->reachable = malloc(edge_data->cap * sizeof(uint8_t));
+		if (!edge_data->edges || !edge_data->reachable)
 		{
 			fprintf(stderr, "Failed reallocating freespace grid");
 			abort();
 		}
 	}
-	grid->n_segments_P = n_P;
-	grid->n_segments_Q = n_Q;
-	return;
+	edge_data->n_points_P = n_points_P;
+	edge_data->n_points_Q = n_points_Q;
 }
 
-void GetFreespaceCellGrid(FD_curve P, FD_curve Q, FD_float eps, FD_freespace_cell_grid* grid)
+void GetFreespaceEdgeData(FD_curve P, FD_curve Q, FD_float eps, FD_freespace_edge_data *edge_data)
 {
-	FreeSpaceCellGridMaybeAlloc(grid, P.n_segments, Q.n_segments);
-	for (size_t i = 0; i < P.n_segments; i++)
+	// Edges are stored like this in memory
+	// 10---11---
+	// 1|   3|  5|
+	//  8--- 9---
+	// 0|   2|  4|
+	//  6--- 7---
+	size_t index = 0;
+	FreeSpaceEdgesMaybeAlloc(edge_data, P.n_points, Q.n_points);
+	for (size_t i = 0; i < P.n_points; i++) // for every point of P and every segment of Q
 	{
-		FD_segment seg_P = { P.points + i,P.points + i + 1 };
-		for (size_t j = 0; j < Q.n_segments; j++)
+		for (size_t j = 0; j < Q.n_points - 1; j++)
 		{
-			FD_segment seg_Q = { Q.points + j,Q.points + j + 1 };
-			GetFreespaceCell(seg_P, seg_Q, eps, grid->cells + i * Q.n_segments + j); //store cells [P|Q] [0|0][0|1]...[0|Q.n-1][1|0]
+			FD_segment seg = {Q.points + j, Q.points + j + 1};
+			edge_data->reachable[index] = GetFreeSpaceCellOneEdge(P.points + i, seg, eps, &(edge_data->edges[index].entry), &(edge_data->edges[index].exit));
+			index++;
+		}
+	}
+	for (size_t i = 0; i < Q.n_points; i++)
+	{
+		for (size_t j = 0; j < P.n_points-1; j++)
+		{
+			FD_segment seg = {P.points + j, P.points + j + 1};
+			edge_data->reachable[index] = GetFreeSpaceCellOneEdge(Q.points + i, seg, eps, &(edge_data->edges[index].entry), &(edge_data->edges[index].exit));
+			index++;
 		}
 	}
 }
 
-void GetFreespaceCell(FD_segment P, FD_segment Q, FD_float eps,
-	FD_freespace_cell* const fsp)
+bool GetFreeSpaceCellOneEdge(const FD_point *const p, const FD_segment seg, FD_float eps,
+							 FD_float *fsp_entry_range_begin, FD_float *fsp_entry_range_end)
 {
-	fsp->pass = 0;
-	//0 and 1 correspond to a_ij and b_ij
-	fsp->pass |= (GetFreeSpaceCellOneEdge(P.p1, Q, eps, &(fsp->fsp_vertices[0]), &(fsp->fsp_vertices[1]))) * ENTRY_LEFT;
-	fsp->pass |= (GetFreeSpaceCellOneEdge(Q.p2, P, eps, &(fsp->fsp_vertices[2]), &(fsp->fsp_vertices[3]))) * EXIT_TOP;
-	//4 is b_ij+1 5 is a_ij+1		  
-	fsp->pass |= (GetFreeSpaceCellOneEdge(P.p2, Q, eps, &(fsp->fsp_vertices[5]), &(fsp->fsp_vertices[4]))) * EXIT_RIGHT;
-	fsp->pass |= (GetFreeSpaceCellOneEdge(Q.p1, P, eps, &(fsp->fsp_vertices[7]), &(fsp->fsp_vertices[6]))) * ENTRY_BOTTOM;
-}
-
-bool GetFreeSpaceCellOneEdge(const FD_point* const p, const FD_segment seg, FD_float eps,
-	FD_float* fsp_entry_range_begin, FD_float* fsp_entry_range_end)
-{
-	FD_point p1 = {0}, p2 = { 0 };
+	FD_point p1 = {0}, p2 = {0};
 	switch (CircleLineIntersection(p, eps, seg, &p1, &p2))
 	{
 	case PASSANT:
 		return false;
-	case TANGENT: {
+	case TANGENT:
+	{
 		FD_float scal = PointToParameter(p1, seg);
 		if (scal >= 0 && scal <= 1)
 		{
@@ -63,7 +67,8 @@ bool GetFreeSpaceCellOneEdge(const FD_point* const p, const FD_segment seg, FD_f
 		}
 		return false;
 	}
-	case SECANT: {
+	case SECANT:
+	{
 		FD_float scal1 = PointToParameter(p1, seg);
 		FD_float scal2 = PointToParameter(p2, seg);
 		if (scal1 > scal2) // swap if order is wrong
