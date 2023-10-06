@@ -107,10 +107,10 @@ static void DrawFreeSpaceCellEdges(uint32_t P_seg_idx, uint32_t Q_seg_idx, FD_fr
 		fsp_poly_vert[i] = ParameterToPoint(base_edges[fsp_poly_vertices[i].fsp_rect_edge], fsp_poly_vertices[i].fsp_poly_vert_paramspace);
 	}
 	for (uint32_t i = 0; i < index - 1; i++)
-		DrawLine(fsp_poly_vert[i].x, fsp_poly_vert[i].y, fsp_poly_vert[i + 1].x, fsp_poly_vert[i + 1].y, DARKGREEN);
+		DrawLine(fsp_poly_vert[i].x, fsp_poly_vert[i].y, fsp_poly_vert[i + 1].x, fsp_poly_vert[i + 1].y, RED);
 	// if the polygon is at least a triangle, connect the last point to the first point
 	if (index > 2)
-		DrawLine(fsp_poly_vert[index - 1].x, fsp_poly_vert[index - 1].y, fsp_poly_vert[0].x, fsp_poly_vert[0].y, DARKGREEN);
+		DrawLine(fsp_poly_vert[index - 1].x, fsp_poly_vert[index - 1].y, fsp_poly_vert[0].x, fsp_poly_vert[0].y, RED);
 }
 
 static void DrawFreeSpaceEdges(FD_freespace_edge_data edge_data)
@@ -175,13 +175,22 @@ void RunVisualizer()
 		CalcGui();
 		if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && IsMouseInRectangle(curves_panel_rect))
 		{
-			AddPointToCurve(&P, (FD_point){mouse.x, mouse.y});
-			recalc_grid = true;
+			FD_point p_new = { mouse.x,mouse.y };
+			//add a new point only if its the first point or if its not equal to the last point
+			if (!P.n_points || (P.points[P.n_points - 1].x != p_new.x) || (P.points[P.n_points - 1].y != p_new.y))
+			{
+				AddPointToCurve(&P, p_new);
+				recalc_grid = true;
+			}
 		}
 		if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT) && IsMouseInRectangle(curves_panel_rect))
 		{
-			AddPointToCurve(&Q, (FD_point){mouse.x, mouse.y});
-			recalc_grid = true;
+			FD_point p_new = { mouse.x,mouse.y };
+			if (!Q.n_points || (Q.points[Q.n_points - 1].x != p_new.x) || (Q.points[Q.n_points - 1].y != p_new.y))
+			{
+				AddPointToCurve(&Q, p_new);
+				recalc_grid = true;
+			}
 		}
 		if (IsKeyPressed(KEY_X)) // reset curves
 		{
