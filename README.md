@@ -34,16 +34,6 @@ Open a developer command prompt window, change to the build directory and run:
 ```
 MSBuild.exe .\frechet_distance.vcxproj
 ```
-## Running the visual application
-On Linux: 
-```
-./frechet_distance
-```
-On Windows:
-```
-cd Debug
-.\frechet_distance.exe
-```
 
 
 
