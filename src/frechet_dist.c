@@ -48,7 +48,7 @@ void GetFreespaceEdgeData(FD_curve P, FD_curve Q, FD_float eps, FD_freespace_edg
 	}
 }
 
-bool GetFreeSpaceCellOneEdge(const FD_point *const p, const FD_segment seg, FD_float eps,
+bool GetFreeSpaceCellOneEdge(FD_point* p, FD_segment seg, FD_float eps,
 							 FD_float *fsp_entry_range_begin, FD_float *fsp_entry_range_end)
 {
 	FD_point p1 = {0}, p2 = {0};

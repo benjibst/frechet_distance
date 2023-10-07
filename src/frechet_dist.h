@@ -5,18 +5,10 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#ifndef __WIN32__
+#ifndef MSVC
 #define Min(x, y) ((x) < (y) ? (x) : (y))
 #define Max(x, y) ((x) > (y) ? (x) : (y))
 #endif
-
-typedef enum fsp_entry_exit_bits
-{
-	ENTRY_LEFT = 1 << 0,
-	EXIT_TOP = 1 << 1,
-	EXIT_RIGHT = 1 << 2,
-	ENTRY_BOTTOM = 1 << 3,
-} FD_fsp_entry_exit_bits;
 
 typedef struct freespace_edge
 {
@@ -37,6 +29,6 @@ void FreeSpaceEdgesMaybeAlloc(FD_freespace_edge_data *edges, uint32_t n_points_P
 void GetFreespaceEdgeData(FD_curve P, FD_curve Q, FD_float eps, FD_freespace_edge_data *edges);
 
 // sets freespace entry or exit interval for one side and returns if entry or exit from that side is possible
-bool GetFreeSpaceCellOneEdge(const FD_point *const p, const FD_segment seg, FD_float eps,
+bool GetFreeSpaceCellOneEdge(FD_point* p, FD_segment seg, FD_float eps,
 							 FD_float *fsp_entry_range_begin, FD_float *fsp_entry_range_end);
 #endif // __FRECHET_DIST_H__

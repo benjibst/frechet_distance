@@ -6,7 +6,7 @@
 #include "frechet_dist.h"
 #include <stdio.h>
 
-void InitGUI();
-void RunVisualizer();
+void InitGUI(void);
+void RunVisualizer(void);
 
 #endif // __VISUALIZER_H__

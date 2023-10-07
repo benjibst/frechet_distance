@@ -8,7 +8,7 @@ const int WINDOW_X = 800;
 const int WINDOW_Y = 500;
 const char *const WINDOW_NAME = "Frechet distance";
 
-void InitGUI()
+void InitGUI(void)
 {
 	SetConfigFlags(FLAG_WINDOW_RESIZABLE);
 	InitWindow(WINDOW_X, WINDOW_Y, WINDOW_NAME);
@@ -35,7 +35,7 @@ static inline bool IsMouseInRectangle(Rectangle rect)
 		   mouse.y <= rect.y + rect.height;
 }
 
-static void CalcGui()
+static void CalcGui(void)
 {
 	mouse = GetMousePosition();
 	window_sz.width = GetScreenWidth();
@@ -164,7 +164,7 @@ static void DrawPQPoints(FD_curve P, FD_curve Q, FD_float eps)
 	DrawCircleLines(point_P.x, point_P.y, eps, c);
 }
 
-void RunVisualizer()
+void RunVisualizer(void)
 {
 	int eps = 0;
 	bool eps_editing = false, recalc_grid = false;
