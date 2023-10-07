@@ -26,24 +26,24 @@ void GetFreespaceEdgeData(FD_curve P, FD_curve Q, FD_float eps, FD_freespace_edg
 	//  8--- 9---
 	// 0|   2|  4|
 	//  6--- 7---
-	size_t index = 0;
+	uint32_t index = 0;
 	FreeSpaceEdgesMaybeAlloc(edge_data, P.n_points, Q.n_points);
-	for (size_t i = 0; i < P.n_points; i++) // for every point of P and every segment of Q
+	for (uint32_t i = 0; i < P.n_points; i++) // for every point of P and every segment of Q
 	{
-		for (size_t j = 0; j < Q.n_points - 1; j++)
+		for (uint32_t j = 0; j < Q.n_points - 1; j++)
 		{
 			FD_segment seg = {Q.points + j, Q.points + j + 1};
 			edge_data->reachable[index] = GetFreeSpaceCellOneEdge(P.points + i, seg, eps, &(edge_data->edges[index].entry), &(edge_data->edges[index].exit));
 			index++;
 		}
 	}
-	for (size_t i = 0; i < Q.n_points; i++)
+	for (uint32_t i = 0; i < Q.n_points; i++)
 	{
-		for (size_t j = 0; j < P.n_points-1; j++)
+		for (uint32_t j = 0; j < P.n_points-1; j++)
 		{
 			FD_segment seg = {P.points + j, P.points + j + 1};
 			edge_data->reachable[index] = GetFreeSpaceCellOneEdge(Q.points + i, seg, eps, &(edge_data->edges[index].entry), &(edge_data->edges[index].exit));
-			index++;
+ 			index++;
 		}
 	}
 }
