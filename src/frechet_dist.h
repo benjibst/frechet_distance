@@ -17,11 +17,12 @@ typedef struct freespace_edge
 
 typedef struct freespace_edges
 {
+	//store edges and reachable separately to save memory because of alignment
 	FD_freespace_edge *edges; // stores the edges of the free space diagram
+	uint8_t *reachable; // for every edge stores if entry or exit from that edge is possible
 	uint32_t n_points_P;
 	uint32_t n_points_Q;
 	size_t cap;
-	uint8_t *reachable; // for every edge stores if entry or exit from that edge is possible
 } FD_freespace_edge_data;
 
 void FreeSpaceEdgesMaybeAlloc(FD_freespace_edge_data *edges, uint32_t n_points_P, uint32_t n_points_Q);

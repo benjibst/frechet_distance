@@ -1,4 +1,6 @@
 #include "frechet_dist.h"
+#include <stdio.h>
+#include <stdlib.h>
 
 void FreeSpaceEdgesMaybeAlloc(FD_freespace_edge_data *edge_data, uint32_t n_points_P, uint32_t n_points_Q)
 {

@@ -1,5 +1,7 @@
 #include "geometry.h"
+#include <stdio.h>
 #include <assert.h>
+#include <stdlib.h>
 
 FD_float OrthogonalDistance(const FD_point* const p, FD_segment seg) {
 	FD_float x2mx1 = seg.p2->x - seg.p1->x;
@@ -63,7 +65,7 @@ FD_float PointToParameter(FD_point p, FD_segment seg) {
 FD_curve AllocateCurve(uint32_t cap)
 {
 	FD_curve c;
-	c.points = malloc(sizeof(FD_point) * cap);
+	c.points = malloc(cap*sizeof(FD_point));
 	c.n_points = 0;
 	c.capacity = cap;
 	c.n_segments = 0;
@@ -72,6 +74,8 @@ FD_curve AllocateCurve(uint32_t cap)
 
 void AddPointToCurve(FD_curve* c, FD_point p)
 {
+	if (c->n_points && (c->points[c->n_points - 1].x == p.x) && (c->points[c->n_points - 1].y == p.y))
+		return;
 	if (c->capacity == c->n_points)
 	{
 		void* points_new = realloc(c->points, sizeof(FD_point) * 2 * c->capacity);
@@ -85,7 +89,7 @@ void AddPointToCurve(FD_curve* c, FD_point p)
 	}
 	c->points[c->n_points] = p;
 	c->n_points++;
-	if (c->n_points > 1)
+	if (c->n_points >= 2)
 		c->n_segments++;
 }
 

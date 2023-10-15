@@ -1,12 +1,15 @@
+#include <stdlib.h>
 #include "visualizer.h"
+#include "raylib.h"
+#include "raygui.h"
+#include "frechet_dist.h"
 #define RAYGUI_IMPLEMENTATION
 #include "raygui.h"
 #undef RAYGUI_IMPLEMENTATION
-#include <time.h>
 
-const int WINDOW_X = 800;
-const int WINDOW_Y = 500;
-const char *const WINDOW_NAME = "Frechet distance";
+static const int WINDOW_X = 800;
+static const int WINDOW_Y = 500;
+static const char *const WINDOW_NAME = "Frechet distance";
 
 void InitGUI(void)
 {
@@ -17,16 +20,16 @@ void InitGUI(void)
 }
 
 /////////////////////////////////////////gui data
-Rectangle curves_panel_rect;
-Rectangle fsp_panel_rect;
-Rectangle fsp_label_rect;
-Rectangle eps_valuebox_rect;
-Rectangle fsp_grid_rect;
-struct
+static Rectangle curves_panel_rect;
+static Rectangle fsp_panel_rect;
+static Rectangle fsp_label_rect;
+static Rectangle eps_valuebox_rect;
+static Rectangle fsp_grid_rect;
+static struct
 {
 	int width, height;
 } window_sz;
-Vector2 mouse;
+static Vector2 mouse;
 ///////////////////////////////////////////////////
 
 static inline bool IsMouseInRectangle(Rectangle rect)
@@ -175,22 +178,15 @@ void RunVisualizer(void)
 		CalcGui();
 		if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && IsMouseInRectangle(curves_panel_rect))
 		{
-			FD_point p_new = { mouse.x,mouse.y };
-			//add a new point only if its the first point or if its not equal to the last point
-			if (!P.n_points || (P.points[P.n_points - 1].x != p_new.x) || (P.points[P.n_points - 1].y != p_new.y))
-			{
-				AddPointToCurve(&P, p_new);
-				recalc_grid = true;
-			}
+			FD_point p_new = {mouse.x, mouse.y};
+			AddPointToCurve(&P, p_new);
+			recalc_grid = true;
 		}
 		if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT) && IsMouseInRectangle(curves_panel_rect))
 		{
-			FD_point p_new = { mouse.x,mouse.y };
-			if (!Q.n_points || (Q.points[Q.n_points - 1].x != p_new.x) || (Q.points[Q.n_points - 1].y != p_new.y))
-			{
-				AddPointToCurve(&Q, p_new);
-				recalc_grid = true;
-			}
+			FD_point p_new = {mouse.x, mouse.y};
+			AddPointToCurve(&Q, p_new);
+			recalc_grid = true;
 		}
 		if (IsKeyPressed(KEY_X)) // reset curves
 		{

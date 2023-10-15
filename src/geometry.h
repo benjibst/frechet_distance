@@ -1,10 +1,7 @@
 #ifndef __GEOMETRY_H__
 #define __GEOMETRY_H__
 
-#include <stddef.h>
 #include <math.h>
-#include <stdlib.h>
-#include <stdio.h>
 #include <stdint.h>
 
 #if SINGLE
