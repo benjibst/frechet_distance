@@ -4,6 +4,7 @@
 #include "geometry.h"
 #include <stdint.h>
 #include <stdbool.h>
+#include <stddef.h>
 
 #ifndef MSVC
 #define Min(x, y) ((x) < (y) ? (x) : (y))
