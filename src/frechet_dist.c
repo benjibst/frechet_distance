@@ -104,29 +104,45 @@ bool GridEntryExitPossible(FD_freespace_edge_data *edges) {
 
 bool TraverseGridUp(FD_freespace_edge_data *edges,FD_freespace_cell_pos prev_cell, FD_float prev_entry) {
     FD_freespace_cell_pos curr_cell = {prev_cell.x,prev_cell.y+1};
-    //the bottom edge of the current cell is already at the top of the grid;
     if(curr_cell.y == edges->n_points_Q) return false;
     //return false if the bottom segment of the current cell is not reachable
     if(!edges->reachableP[curr_cell.y*(edges->n_points_P-1) + curr_cell.x]) return false;
+    //if edge is reachable and were at the last cell return true (We have won)
+    if(curr_cell.x==edges->n_points_P-1 && curr_cell.y==edges->n_points_Q-1) return true;
     FD_freespace_edge curr_cell_bottom_edge = edges->edgesP[curr_cell.y*(edges->n_points_P-1) + curr_cell.x];
     if(prev_entry>curr_cell_bottom_edge.exit) return false;
     FD_float curr_entry;
     if(prev_entry<curr_cell_bottom_edge.entry)
         curr_entry = curr_cell_bottom_edge.entry;
     else curr_entry = prev_entry;
-    printf("Cell: (%d,%d) PrevEntry: %.3f CurrEntry %.3f\n",curr_cell.x,curr_cell.y,prev_entry,curr_entry);
-    return TraverseGridUp(edges,curr_cell,curr_entry);
-
+    printf("UP Cell: (%d,%d) PrevEntry: %.3f CurrEntry %.3f\n",curr_cell.x,curr_cell.y,prev_entry,curr_entry);
+    if(TraverseGridUp(edges,curr_cell,curr_entry)) return true;
+    return TraverseGridRight(edges,curr_cell,0.0f);
 }
 
 bool TraverseGridRight(FD_freespace_edge_data *edges, FD_freespace_cell_pos prev_cell, FD_float prev_entry) {
-
+    FD_freespace_cell_pos curr_cell = {prev_cell.x+1,prev_cell.y};
+    if(curr_cell.x == edges->n_points_P) return false;
+    //return false if the left segment of the current cell is not reachable
+    if(!edges->reachableQ[curr_cell.x*(edges->n_points_Q-1) + curr_cell.y]) return false;
+    //if edge is reachable and were at the last cell return true (We have won)
+    if(curr_cell.x==edges->n_points_P-1 && curr_cell.y==edges->n_points_Q-1) return true;
+    FD_freespace_edge curr_cell_left_edge = edges->edgesQ[curr_cell.x*(edges->n_points_Q-1) + curr_cell.y];
+    if(prev_entry>curr_cell_left_edge.exit) return false;
+    FD_float curr_entry;
+    if(prev_entry<curr_cell_left_edge.entry)
+        curr_entry = curr_cell_left_edge.entry;
+    else curr_entry = prev_entry;
+    printf("RIGHT Cell: (%d,%d) PrevEntry: %.3f CurrEntry %.3f\n",curr_cell.x,curr_cell.y,prev_entry,curr_entry);
+    if(TraverseGridRight(edges,curr_cell,curr_entry)) return true;
+    return TraverseGridUp(edges,curr_cell,0.0f);
 }
 
 bool FrechetDistLeqEps(FD_freespace_edge_data *edges) {
     if (!GridEntryExitPossible(edges)) return false;
     FD_freespace_cell_pos curr_cell = {0,0};
+    printf("-------------------------------------------\n");
     if (TraverseGridUp(edges,curr_cell,0.0f)) return true;
-    //if (TraverseGridRight(edges,curr_cell,0.0f)) return true;
+    if (TraverseGridRight(edges,curr_cell,0.0f)) return true;
     return false;
 }

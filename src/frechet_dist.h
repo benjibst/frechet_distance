@@ -42,7 +42,11 @@ void GetFreespaceEdgeData(FD_curve P, FD_curve Q, FD_float eps, FD_freespace_edg
 bool GetFreeSpaceCellOneEdge(FD_point* p, FD_segment seg, FD_float eps,
 							 FD_float *fsp_entry_range_begin, FD_float *fsp_entry_range_end);
 
-bool FrechetDistLeqEps(FD_freespace_edge_data* edges);
+bool TraverseGridUp(FD_freespace_edge_data *edges,FD_freespace_cell_pos prev_cell, FD_float prev_entry);
+
+bool TraverseGridRight(FD_freespace_edge_data *edges,FD_freespace_cell_pos prev_cell, FD_float prev_entry);
+
 bool GridEntryExitPossible(FD_freespace_edge_data* edges);
 
+bool FrechetDistLeqEps(FD_freespace_edge_data* edges);
 #endif // __FRECHET_DIST_H__
