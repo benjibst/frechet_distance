@@ -94,7 +94,6 @@ static void DrawFreeSpaceCellEdges(uint32_t P_seg_idx, uint32_t Q_seg_idx, FD_fr
 			}
 			else
 			{
-
 				fsp_poly_vertices[index].fsp_poly_vert_paramspace = edge_data.edges[offsets[i]].entry;
 				fsp_poly_vertices[index++].fsp_rect_edge = i;
 				fsp_poly_vertices[index].fsp_poly_vert_paramspace = edge_data.edges[offsets[i]].exit;
@@ -218,11 +217,11 @@ void RunVisualizer(void)
 			if (recalc_grid)
 			{
 				GetFreespaceEdgeData(P, Q, eps, &edge_data);
+                FrechetDistLeqEps(&edge_data);
 				recalc_grid = false;
 			}
 			if (IsMouseInRectangle(fsp_grid_rect))
 				DrawPQPoints(P, Q, eps);
-			// DrawFreeSpaceGrid(grid);
 			DrawFreeSpaceEdges(edge_data);
 		}
 		EndDrawing();
