@@ -1,6 +1,6 @@
 #include "geometry.h"
 #include <stdio.h>
-#include <assert.h>
+#include <math.h>
 #include <stdlib.h>
 
 double OrthogonalDistance(const Point2d *const p, Segment seg) {
