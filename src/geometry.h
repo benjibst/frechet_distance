@@ -1,57 +1,53 @@
-#ifndef __GEOMETRY_H__
-#define __GEOMETRY_H__
+#ifndef GEOMETRY_H_
+#define GEOMETRY_H_
 
-#include <math.h>
 #include <stdint.h>
 
-#if SINGLE
-typedef float FD_float;
-#define Abs(x) fabsf(x)
-#define Hypot(x, y) hypotf(x, y)
-#define Sqrt(x) sqrtf(x)
-#else
-typedef double FD_float;
-#define Abs(x) fabs(x)
-#define Hypot(x, y) hypot(x, y)
-#define Sqrt(x) sqrt(x)
-#endif
+typedef struct {
+    double x, y;
+} Point2d;
 
-typedef struct point {
-    FD_float x, y;
-} FD_point;
-
-typedef struct curve {
-    FD_point *points;
+typedef struct {
+    Point2d *points;
     uint32_t n_points;
     uint32_t n_segments;
     uint32_t capacity;
-} FD_curve;
+} Curve;
 
-typedef struct segment {
-    FD_point *p1, *p2;
-} FD_segment;
+typedef struct {
+    Point2d *A, *B;
+} Segment;
 
-typedef enum line_circle_intersection_type {
+typedef enum {
     PASSANT = 1,
     TANGENT,
     SECANT,
-} FD_line_circle_intersection_type;
+} LineCircleIntersectType;
 
-FD_float OrthogonalDistance(const FD_point *const p, FD_segment seg);
+double OrthogonalDistance(const Point2d *p, Segment seg);
 
-FD_point ParameterToPoint(FD_segment seg, FD_float p); //norm goes from 0 to 1
+//returns A+vec(AB)*param
+Point2d ParameterToPoint(Segment seg, double param);
 
-FD_line_circle_intersection_type
-CircleLineIntersection(const FD_point *const center, FD_float eps,
-                       FD_segment seg, FD_point *p1,
-                       FD_point *p2);
 
-FD_float PointToParameter(FD_point p, FD_segment);
+// https://mathworld.wolfram.com/Circle-LineIntersection.html
+//if the circle and the line do not intersect return PASSANT
+//if the line is tangent to the circle return TANGENT and store the tangential point in p1
+//if the line crosses the circle return SECANT and store both intersection points in p1 and p2
+LineCircleIntersectType
+CircleLineIntersection(const Point2d *center, double eps,
+                       Segment seg, Point2d *p1,
+                       Point2d *p2);
 
-FD_curve AllocateCurve(uint32_t cap);
+//returns how far along the line the point p is.
+//if p is A returns 0, if p is B returns 1
+double PointToParameter(Point2d p, Segment);
 
-void AddPointToCurve(FD_curve *c, FD_point p);
+//allocate a curve with capacity
+Curve AllocateCurve(uint32_t cap);
 
-void FreeCurve(FD_curve *c);
+void AddPointToCurve(Curve *c, Point2d p);
 
-#endif // __GEOMETRY_H__
+void FreeCurve(Curve *c);
+
+#endif // GEOMETRY_H_

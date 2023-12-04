@@ -1,7 +1,6 @@
-#ifndef __VISUALIZER_H__
-#define __VISUALIZER_H__
+#ifndef VISUALIZER_H_
+#define VISUALIZER_H_
 
-void InitGUI(void);
 void RunVisualizer(void);
 
-#endif // __VISUALIZER_H__
+#endif // VISUALIZER_H_
