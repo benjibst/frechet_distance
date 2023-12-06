@@ -30,6 +30,7 @@ static void DeInitGUI(void) {
 static Rectangle curves_panel_rect;
 static Rectangle fsp_panel_rect;
 static Rectangle eps_valuebox_rect;
+static Rectangle compute_button_rect;
 static Rectangle fsp_grid_rect;
 static struct {
     int width, height;
@@ -51,6 +52,8 @@ static void CalcGui(void) {
             (Rectangle) {window_sz.width / 2.0f, 0.0f, window_sz.width / 2.0f, window_sz.height};
     eps_valuebox_rect = (Rectangle) {fsp_panel_rect.x + fsp_panel_rect.width - 50, fsp_panel_rect.y, 50,
                                      RAYGUI_WINDOWBOX_STATUSBAR_HEIGHT};
+    compute_button_rect = (Rectangle) {fsp_panel_rect.x + fsp_panel_rect.width - 100, fsp_panel_rect.y, 50,
+                                       RAYGUI_WINDOWBOX_STATUSBAR_HEIGHT};
 }
 
 static void
@@ -115,9 +118,9 @@ DrawFreeSpaceCellEdges(uint32_t P_seg_idx, uint32_t Q_seg_idx, FreeSpaceEdgeData
 }
 
 static void DrawFreeSpaceEdges(FreeSpaceEdgeData edge_data) {
-    int max_side_len_rect = Min(fsp_panel_rect.width, (fsp_panel_rect.height - RAYGUI_WINDOWBOX_STATUSBAR_HEIGHT));
+    float max_side_len_rect = Min(fsp_panel_rect.width, (fsp_panel_rect.height - RAYGUI_WINDOWBOX_STATUSBAR_HEIGHT));
     float cellratio = (float) (edge_data.n_points_P - 1) / (edge_data.n_points_Q - 1);
-    const float width_ratio = 0.95f;
+    const float width_ratio = 0.98f;
     if (edge_data.n_points_P > edge_data.n_points_Q) {
         fsp_grid_rect.width = width_ratio * max_side_len_rect;
         fsp_grid_rect.height = fsp_grid_rect.width / cellratio;
@@ -128,12 +131,12 @@ static void DrawFreeSpaceEdges(FreeSpaceEdgeData edge_data) {
     fsp_grid_rect.x = fsp_panel_rect.x + (fsp_panel_rect.width - fsp_grid_rect.width) / 2;
     fsp_grid_rect.y =
             fsp_panel_rect.y + (fsp_panel_rect.height - fsp_grid_rect.height + RAYGUI_WINDOWBOX_STATUSBAR_HEIGHT) / 2;
-    int fsp_width = fsp_grid_rect.width / (edge_data.n_points_P - 1);
-    int fsp_height = fsp_grid_rect.height / (edge_data.n_points_Q - 1);
+    float fsp_width = fsp_grid_rect.width / (edge_data.n_points_P - 1);
+    float fsp_height = fsp_grid_rect.height / (edge_data.n_points_Q - 1);
     for (uint32_t i = 0; i < edge_data.n_points_P - 1; i++) {
-        int fsp_x = fsp_grid_rect.x + i * fsp_width;
+        float fsp_x = fsp_grid_rect.x + i * fsp_width;
         for (uint32_t j = 0; j < edge_data.n_points_Q - 1; j++) {
-            int fsp_y = fsp_grid_rect.y + (edge_data.n_points_Q - j - 2) * fsp_height;
+            float fsp_y = fsp_grid_rect.y + (edge_data.n_points_Q - j - 2) * fsp_height;
             Rectangle fsp_cell_base = {fsp_x, fsp_y, fsp_width, fsp_height};
             DrawFreeSpaceCellEdges(i, j, edge_data, fsp_cell_base);
         }
@@ -142,8 +145,7 @@ static void DrawFreeSpaceEdges(FreeSpaceEdgeData edge_data) {
 
 static void DrawPQPoints(Curve P, Curve Q, double eps) {
     float pos_x_in_fsp_rect = mouse.x - fsp_grid_rect.x;
-    float pos_y_in_fsp_rect =
-            fsp_grid_rect.height + fsp_grid_rect.y - mouse.y; // in this case .y is the top side so add height
+    float pos_y_in_fsp_rect = fsp_grid_rect.height + fsp_grid_rect.y - mouse.y;
     float fsp_cell_width = fsp_grid_rect.width / P.n_segments;
     float fsp_cell_height = fsp_grid_rect.height / Q.n_segments;
     uint32_t P_index = pos_x_in_fsp_rect / fsp_cell_width;
@@ -151,8 +153,7 @@ static void DrawPQPoints(Curve P, Curve Q, double eps) {
     float cell_x = fsp_grid_rect.x + P_index * fsp_cell_width;
     float cell_y = fsp_grid_rect.y + fsp_grid_rect.height - Q_index * fsp_cell_height;
     float pos_x_in_cell = (mouse.x - cell_x) / fsp_cell_width;
-    float pos_y_in_cell =
-            (cell_y - mouse.y) / fsp_cell_height; // in this case it is the bottom side so no need to add height
+    float pos_y_in_cell = (cell_y - mouse.y) / fsp_cell_height;
     Point2d point_P = ParameterToPoint((Segment) {P.points + P_index, P.points + P_index + 1}, pos_x_in_cell);
     Point2d point_Q = ParameterToPoint((Segment) {Q.points + Q_index, Q.points + Q_index + 1}, pos_y_in_cell);
     DrawCircle(point_P.x, point_P.y, 5, DARKGREEN);
@@ -163,8 +164,11 @@ static void DrawPQPoints(Curve P, Curve Q, double eps) {
 
 void RunVisualizer(void) {
     InitGUI();
-    int eps = 0;
+    double eps_d = 0;
+    int eps;
     bool recalc_grid = false, frechet_dist_leq_eps = false;
+    double frechet_distance;
+    bool compute_frechet_distance = false;
     Curve P = AllocateCurve(10), Q = AllocateCurve(10);
     FreeSpaceEdgeData edge_data = {0};
     while (!WindowShouldClose()) {
@@ -172,11 +176,13 @@ void RunVisualizer(void) {
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && IsMouseInRect(curves_panel_rect)) {
             Point2d p_new = {mouse.x, mouse.y};
             AddPointToCurve(&P, p_new);
+            compute_frechet_distance = false;
             recalc_grid = true;
         }
         if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT) && IsMouseInRect(curves_panel_rect)) {
             Point2d p_new = {mouse.x, mouse.y};
             AddPointToCurve(&Q, p_new);
+            compute_frechet_distance = false;
             recalc_grid = true;
         }
         if (IsKeyPressed(KEY_X)) // reset curves
@@ -185,34 +191,47 @@ void RunVisualizer(void) {
             P.n_points = 0;
             Q.n_segments = 0;
             P.n_segments = 0;
+            compute_frechet_distance = false;
             recalc_grid = true;
         }
         BeginDrawing();
         GuiPanel(fsp_panel_rect, "Free Space diagram");
         GuiPanel(curves_panel_rect, "Curves");
         if (GuiValueBox(eps_valuebox_rect, NULL, &eps, 0, 10000, true)) {
+            compute_frechet_distance = false;
+            eps_d = (double) eps;
             recalc_grid = true;
         }
-        for (long long i = 0; i < ((long long) P.n_points) - 1; i++) {
-            DrawLineEx((Vector2) {P.points[i].x, P.points[i].y}, (Vector2) {P.points[i + 1].x, P.points[i + 1].y}, 2,
+        if (GuiButton(compute_button_rect, "Compute frechet distance")) {
+            compute_frechet_distance = true;
+            recalc_grid = false;
+        }
+        for (int i = 0; i < ((int) P.n_points) - 1; i++) {
+            DrawLineEx((Vector2) {P.points[i].x, P.points[i].y}, (Vector2) {P.points[i + 1].x, P.points[i + 1].y},
+                       2,
                        BEIGE);
         }
-        for (long long i = 0; i < ((long long) Q.n_points) - 1; i++) {
+        for (int i = 0; i < ((int) Q.n_points) - 1; i++) {
             DrawLineEx((Vector2) {Q.points[i].x, Q.points[i].y}, (Vector2) {Q.points[i + 1].x, Q.points[i + 1].y}, 2,
                        PURPLE);
         }
         if (P.n_segments >= 1 && Q.n_segments >= 1) {
             if (recalc_grid) {
                 GetFreespaceEdgeData(P, Q, eps, &edge_data);
-                if (FrechetDistLeqEps(&edge_data))
-                    frechet_dist_leq_eps = true;
-                else frechet_dist_leq_eps = false;
+                frechet_dist_leq_eps = FrechetDistLeqEps(&edge_data);
                 recalc_grid = false;
+            } else if (compute_frechet_distance) {
+                frechet_distance = ComputeFrechetDistance(P, Q, &edge_data);
+                frechet_dist_leq_eps = true;
+                eps_d = frechet_distance;
+                compute_frechet_distance = false;
             }
             if (IsMouseInRect(fsp_grid_rect))
-                DrawPQPoints(P, Q, eps);
+                DrawPQPoints(P, Q, eps_d);
             DrawFreeSpaceEdges(edge_data);
-            if (frechet_dist_leq_eps) DrawRectangleLinesEx(fsp_grid_rect, 5, GREEN);
+            if (frechet_dist_leq_eps) {
+                DrawRectangleLinesEx(fsp_grid_rect, 3, GREEN);
+            }
         }
         EndDrawing();
     }

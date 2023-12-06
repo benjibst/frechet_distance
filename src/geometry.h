@@ -9,6 +9,8 @@ typedef struct {
 
 typedef struct {
     Point2d *points;
+    Point2d xy_min;
+    Point2d xy_max;
     uint32_t n_points;
     uint32_t n_segments;
     uint32_t capacity;

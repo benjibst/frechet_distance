@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
+#include <float.h>
+#include <string.h>
 
 double OrthogonalDistance(const Point2d *const p, Segment seg) {
     double x2mx1 = seg.B->x - seg.A->x;
@@ -62,6 +64,8 @@ Curve AllocateCurve(uint32_t cap) {
     Curve c;
     c.points = malloc(cap * sizeof(Point2d));
     c.n_points = 0;
+    c.xy_min = (Point2d) {FLT_MAX, FLT_MAX}; //2 corners of bounding rect
+    c.xy_max = (Point2d) {FLT_MIN, FLT_MIN};
     c.capacity = cap;
     c.n_segments = 0;
     return c;
@@ -74,11 +78,19 @@ void AddPointToCurve(Curve *c, Point2d p) {
         void *points_new = realloc(c->points, sizeof(Point2d) * 2 * c->capacity);
         if (!points_new) {
             fprintf(stderr, "Failed reallocating curve");
-            abort();
+            exit(1);
         }
         c->capacity *= 2;
         c->points = points_new;
     }
+    if (p.x < c->xy_min.x)
+        c->xy_min.x = p.x;
+    if (p.y < c->xy_min.y)
+        c->xy_min.y = p.y;
+    if (p.x > c->xy_max.x)
+        c->xy_max.x = p.x;
+    if (p.y > c->xy_max.y)
+        c->xy_max.y = p.y;
     c->points[c->n_points] = p;
     c->n_points++;
     if (c->n_points >= 2)
@@ -88,7 +100,7 @@ void AddPointToCurve(Curve *c, Point2d p) {
 void FreeCurve(Curve *c) {
     if (c->points)
         free(c->points);
-    c->points = NULL;
+    memset(c, 0, sizeof(Curve));
 }
 
 // if param is 0 returns seg.p1-> if param is 1 returns seg.p2->

@@ -1,6 +1,8 @@
 #include "frechet_dist.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
+#include <string.h>
 
 //if the size needed exceeds the current capacity reallocate the freespace edge data
 static void FreeSpaceEdgesMaybeAlloc(FreeSpaceEdgeData *edge_data, uint32_t np_P, uint32_t np_Q) {
@@ -8,11 +10,7 @@ static void FreeSpaceEdgesMaybeAlloc(FreeSpaceEdgeData *edge_data, uint32_t np_P
     if (n_edges > edge_data->cap) {
         edge_data->cap = 2 * n_edges;
         void *edges_tmp = realloc(edge_data->edgesQ, edge_data->cap * sizeof(FreeSpaceEdge));
-        edge_data->edgesQ = edge_data->edgesQ;
-        edge_data->edgesP = edge_data->edgesQ + (np_Q - 1) * np_P;
         void *reachable_tmp = realloc(edge_data->reachableQ, edge_data->cap * sizeof(uint8_t));
-        edge_data->reachableQ = edge_data->reachableQ;
-        edge_data->reachableP = edge_data->reachableQ + (np_Q - 1) * np_P;
         if (!edges_tmp || !reachable_tmp) {
             fprintf(stderr, "Failed reallocating freespace grid");
             abort();
@@ -21,6 +19,8 @@ static void FreeSpaceEdgesMaybeAlloc(FreeSpaceEdgeData *edge_data, uint32_t np_P
             edge_data->reachableQ = reachable_tmp;
         }
     }
+    edge_data->edgesP = edge_data->edgesQ + (np_Q - 1) * np_P;
+    edge_data->reachableP = edge_data->reachableQ + (np_Q - 1) * np_P;
     edge_data->n_points_P = np_P;
     edge_data->n_points_Q = np_Q;
 }
@@ -88,6 +88,14 @@ void GetFreespaceEdgeData(Curve P, Curve Q, double eps, FreeSpaceEdgeData *edge_
     }
 }
 
+void FreeEdgeData(FreeSpaceEdgeData *data) {
+    if (data->reachableQ)
+        free(data->reachableQ);
+    if (data->edgesQ)
+        free(data->edgesQ);
+    memset(data, 0, sizeof(FreeSpaceEdgeData));
+}
+
 //first check if entry and exit is possible before doing any actual work
 static bool GridEntryExitPossible(FreeSpaceEdgeData *edges) {
     if (!(edges->reachableP[0] && edges->reachableQ[0])) return false;
@@ -147,4 +155,27 @@ bool FrechetDistLeqEps(FreeSpaceEdgeData *edges) {
     if (TraverseGridUp(edges, curr_cell, 0.0f)) return true;
     if (TraverseGridRight(edges, curr_cell, 0.0f)) return true;
     return false;
+}
+
+double ComputeFrechetDistance(Curve P, Curve Q, FreeSpaceEdgeData *data) {
+    Point2d xy_max_pq = {Max(P.xy_max.x, Q.xy_max.x), Min(P.xy_max.y, Q.xy_max.y)};
+    Point2d xy_min_pq = {Min(P.xy_min.x, Q.xy_min.x), Min(P.xy_min.y, Q.xy_min.y)};
+    double dx = xy_max_pq.x - xy_min_pq.x;
+    double dy = xy_max_pq.y - xy_min_pq.y;
+    double frechet_dist_top = hypot(dx, dy);
+    double frechet_dist_eps;
+    double frechet_dist_bottom = 0;
+    FreeSpaceEdgeData curr_eps_data = {0};
+    for (int i = 0; i < FRECHET_DIST_APPROX_STEPS; ++i) {
+        frechet_dist_eps = (frechet_dist_top + frechet_dist_bottom) / 2;
+        GetFreespaceEdgeData(P, Q, frechet_dist_eps, &curr_eps_data);
+        if (FrechetDistLeqEps(&curr_eps_data))
+            frechet_dist_top = frechet_dist_eps;
+        else
+            frechet_dist_bottom = frechet_dist_eps;
+        printf("Frechet dist %d eps: %f\n", i, frechet_dist_eps);
+    }
+    *data = curr_eps_data;
+    printf("Frechet dist: %f\n", frechet_dist_top);
+    return frechet_dist_top;
 }

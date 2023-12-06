@@ -5,6 +5,8 @@
 #include <stdbool.h>
 #include <stddef.h>
 
+#define FRECHET_DIST_APPROX_STEPS 15 //magic number determined to be precise enough for 5 significant digits
+
 #define Min(x, y) ((x) < (y) ? (x) : (y))
 #define Max(x, y) ((x) > (y) ? (x) : (y))
 
@@ -38,7 +40,13 @@ typedef struct {
 //Calculate the free space diagram
 void GetFreespaceEdgeData(Curve P, Curve Q, double eps, FreeSpaceEdgeData *edges);
 
+void FreeEdgeData(FreeSpaceEdgeData *data);
+
 //checks if a forward walking path from beginning to end is possible in the given free space diagram
 bool FrechetDistLeqEps(FreeSpaceEdgeData *edges);
+
+//Computes the Frechet distance for curves P and Q and stores the edge data of the
+//free space grid into data
+double ComputeFrechetDistance(Curve P, Curve Q, FreeSpaceEdgeData *data);
 
 #endif // FRECHET_DIST_H_
