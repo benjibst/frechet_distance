@@ -158,7 +158,7 @@ bool FrechetDistLeqEps(FreeSpaceEdgeData *edges) {
 }
 
 double ComputeFrechetDistance(Curve P, Curve Q, FreeSpaceEdgeData *data) {
-    Point2d xy_max_pq = {Max(P.xy_max.x, Q.xy_max.x), Min(P.xy_max.y, Q.xy_max.y)};
+    Point2d xy_max_pq = {Max(P.xy_max.x, Q.xy_max.x), Max(P.xy_max.y, Q.xy_max.y)};
     Point2d xy_min_pq = {Min(P.xy_min.x, Q.xy_min.x), Min(P.xy_min.y, Q.xy_min.y)};
     double dx = xy_max_pq.x - xy_min_pq.x;
     double dy = xy_max_pq.y - xy_min_pq.y;
@@ -173,9 +173,7 @@ double ComputeFrechetDistance(Curve P, Curve Q, FreeSpaceEdgeData *data) {
             frechet_dist_top = frechet_dist_eps;
         else
             frechet_dist_bottom = frechet_dist_eps;
-        printf("Frechet dist %d eps: %f\n", i, frechet_dist_eps);
     }
     *data = curr_eps_data;
-    printf("Frechet dist: %f\n", frechet_dist_top);
     return frechet_dist_top;
 }

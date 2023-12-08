@@ -50,9 +50,9 @@ static void CalcGui(void) {
     curves_panel_rect = (Rectangle) {0.0f, 0.0f, window_sz.width / 2.0f, window_sz.height};
     fsp_panel_rect =
             (Rectangle) {window_sz.width / 2.0f, 0.0f, window_sz.width / 2.0f, window_sz.height};
-    eps_valuebox_rect = (Rectangle) {fsp_panel_rect.x + fsp_panel_rect.width - 50, fsp_panel_rect.y, 50,
+    eps_valuebox_rect = (Rectangle) {fsp_panel_rect.x + fsp_panel_rect.width - 100, fsp_panel_rect.y, 100,
                                      RAYGUI_WINDOWBOX_STATUSBAR_HEIGHT};
-    compute_button_rect = (Rectangle) {fsp_panel_rect.x + fsp_panel_rect.width - 100, fsp_panel_rect.y, 50,
+    compute_button_rect = (Rectangle) {fsp_panel_rect.x + fsp_panel_rect.width - 200, fsp_panel_rect.y, 100,
                                        RAYGUI_WINDOWBOX_STATUSBAR_HEIGHT};
 }
 
@@ -164,8 +164,9 @@ static void DrawPQPoints(Curve P, Curve Q, double eps) {
 
 void RunVisualizer(void) {
     InitGUI();
+    float eps_f = 0;
     double eps_d = 0;
-    int eps;
+    char valuebox_buf[RAYGUI_VALUEBOX_MAX_CHARS + 1] = "\0";
     bool recalc_grid = false, frechet_dist_leq_eps = false;
     double frechet_distance;
     bool compute_frechet_distance = false;
@@ -197,12 +198,12 @@ void RunVisualizer(void) {
         BeginDrawing();
         GuiPanel(fsp_panel_rect, "Free Space diagram");
         GuiPanel(curves_panel_rect, "Curves");
-        if (GuiValueBox(eps_valuebox_rect, NULL, &eps, 0, 10000, true)) {
+        if (GuiValueBoxF(eps_valuebox_rect, NULL, valuebox_buf, &eps_f, true)) {
             compute_frechet_distance = false;
-            eps_d = (double) eps;
+            eps_d = (double) eps_f;
             recalc_grid = true;
         }
-        if (GuiButton(compute_button_rect, "Compute frechet distance")) {
+        if (GuiButton(compute_button_rect, "Compute")) {
             compute_frechet_distance = true;
             recalc_grid = false;
         }
@@ -217,11 +218,13 @@ void RunVisualizer(void) {
         }
         if (P.n_segments >= 1 && Q.n_segments >= 1) {
             if (recalc_grid) {
-                GetFreespaceEdgeData(P, Q, eps, &edge_data);
+                GetFreespaceEdgeData(P, Q, eps_d, &edge_data);
                 frechet_dist_leq_eps = FrechetDistLeqEps(&edge_data);
                 recalc_grid = false;
             } else if (compute_frechet_distance) {
                 frechet_distance = ComputeFrechetDistance(P, Q, &edge_data);
+                sprintf(valuebox_buf, "%f", frechet_distance);
+                printf("The frechet distance is ~%f\n", frechet_distance);
                 frechet_dist_leq_eps = true;
                 eps_d = frechet_distance;
                 compute_frechet_distance = false;
