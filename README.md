@@ -1,6 +1,6 @@
 # frechet_distance
 This project includes a library to compute the Fréchet distance between polygonal curves and an interactive application to create curves and visualize the free space diagram. 
-Try it out at https://benjibst.github.io/frechet_distance/
+Try it out at https://benjibst.github.io/frechet_distance/ <br>
 Binaries are available for Windows and Linux at https://github.com/benjibst/frechet_distance/releases 
 
 ## Using the app
