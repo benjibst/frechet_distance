@@ -5,7 +5,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-#define FRECHET_DIST_APPROX_STEPS 15 //magic number determined to be precise enough for 5 significant digits
+#define FRECHET_DIST_APPROX_STEPS 20 //magic number determined to be precise enough for 5 significant digits
 
 #define Min(x, y) ((x) < (y) ? (x) : (y))
 #define Max(x, y) ((x) > (y) ? (x) : (y))

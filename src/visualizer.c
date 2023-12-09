@@ -11,7 +11,7 @@
 
 #undef RAYGUI_IMPLEMENTATION
 
-static const int WINDOW_X = 800;
+static const int WINDOW_X = 1000;
 static const int WINDOW_Y = 500;
 static const char *const WINDOW_NAME = "Frechet distance";
 
@@ -52,7 +52,7 @@ static void CalcGui(void) {
             (Rectangle) {window_sz.width / 2.0f, 0.0f, window_sz.width / 2.0f, window_sz.height};
     eps_valuebox_rect = (Rectangle) {fsp_panel_rect.x + fsp_panel_rect.width - 100, fsp_panel_rect.y, 100,
                                      RAYGUI_WINDOWBOX_STATUSBAR_HEIGHT};
-    compute_button_rect = (Rectangle) {fsp_panel_rect.x + fsp_panel_rect.width - 200, fsp_panel_rect.y, 100,
+    compute_button_rect = (Rectangle) {fsp_panel_rect.x + fsp_panel_rect.width - 210, fsp_panel_rect.y, 100,
                                        RAYGUI_WINDOWBOX_STATUSBAR_HEIGHT};
 }
 
@@ -167,23 +167,22 @@ void RunVisualizer(void) {
     float eps_f = 0;
     double eps_d = 0;
     char valuebox_buf[RAYGUI_VALUEBOX_MAX_CHARS + 1] = "\0";
-    bool recalc_grid = false, frechet_dist_leq_eps = false;
+    bool recalc_grid = false, frechet_dist_leq_eps = false, editing_eps = false;
     double frechet_distance;
     bool compute_frechet_distance = false;
     Curve P = AllocateCurve(10), Q = AllocateCurve(10);
     FreeSpaceEdgeData edge_data = {0};
     while (!WindowShouldClose()) {
         CalcGui();
+        BeginDrawing();
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && IsMouseInRect(curves_panel_rect)) {
             Point2d p_new = {mouse.x, mouse.y};
             AddPointToCurve(&P, p_new);
-            compute_frechet_distance = false;
             recalc_grid = true;
         }
         if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT) && IsMouseInRect(curves_panel_rect)) {
             Point2d p_new = {mouse.x, mouse.y};
             AddPointToCurve(&Q, p_new);
-            compute_frechet_distance = false;
             recalc_grid = true;
         }
         if (IsKeyPressed(KEY_X)) // reset curves
@@ -192,24 +191,22 @@ void RunVisualizer(void) {
             P.n_points = 0;
             Q.n_segments = 0;
             P.n_segments = 0;
-            compute_frechet_distance = false;
             recalc_grid = true;
         }
-        BeginDrawing();
         GuiPanel(fsp_panel_rect, "Free Space diagram");
         GuiPanel(curves_panel_rect, "Curves");
-        if (GuiValueBoxF(eps_valuebox_rect, NULL, valuebox_buf, &eps_f, true)) {
-            compute_frechet_distance = false;
-            eps_d = (double) eps_f;
-            recalc_grid = true;
+        if (GuiValueBoxF(eps_valuebox_rect, NULL, valuebox_buf, &eps_f, editing_eps)) {
+            if (editing_eps) {
+                eps_d = (double) eps_f;
+                recalc_grid = true;
+            }
+            editing_eps = !editing_eps;
         }
         if (GuiButton(compute_button_rect, "Compute")) {
             compute_frechet_distance = true;
-            recalc_grid = false;
         }
         for (int i = 0; i < ((int) P.n_points) - 1; i++) {
-            DrawLineEx((Vector2) {P.points[i].x, P.points[i].y}, (Vector2) {P.points[i + 1].x, P.points[i + 1].y},
-                       2,
+            DrawLineEx((Vector2) {P.points[i].x, P.points[i].y}, (Vector2) {P.points[i + 1].x, P.points[i + 1].y}, 2,
                        BEIGE);
         }
         for (int i = 0; i < ((int) Q.n_points) - 1; i++) {
