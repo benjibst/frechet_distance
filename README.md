@@ -10,7 +10,10 @@ You can change the epsilon by entering a number in the top right corner.
 By pressing the compute button you can calculate the frechet distance of the curves.
 Press X to delete the curves and start again.
 
-https://github.com/benjibst/frechet_distance/assets/76067254/114ed263-398e-4841-9b58-c6290c61d095
+
+https://github.com/benjibst/frechet_distance/assets/76067254/e488777e-a760-4c8c-88e8-207bfe6c289b
+
+
 
 ## How to build
 First clone the repo and the dependencies
