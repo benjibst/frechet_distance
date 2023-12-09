@@ -699,7 +699,7 @@ function createExportWrapper(name) {
 // include: runtime_exceptions.js
 // end include: runtime_exceptions.js
 var wasmBinaryFile;
-  wasmBinaryFile = 'frechet_distance.wasm';
+  wasmBinaryFile = 'visualizer.wasm';
   if (!isDataURI(wasmBinaryFile)) {
     wasmBinaryFile = locateFile(wasmBinaryFile);
   }
@@ -1128,11 +1128,6 @@ function GetWindowInnerHeight() { return window.innerHeight; }
       abort(`Assertion failed: ${UTF8ToString(condition)}, at: ` + [filename ? UTF8ToString(filename) : 'unknown filename', line, func ? UTF8ToString(func) : 'unknown function']);
     };
 
-  var setErrNo = (value) => {
-      HEAP32[((___errno_location())>>2)] = value;
-      return value;
-    };
-  
   var PATH = {
   isAbs:(path) => path.charAt(0) === '/',
   splitPath:(filename) => {
@@ -3932,6 +3927,40 @@ function GetWindowInnerHeight() { return window.innerHeight; }
         return stream;
       },
   };
+  function ___syscall_faccessat(dirfd, path, amode, flags) {
+  try {
+  
+      path = SYSCALLS.getStr(path);
+      assert(flags === 0);
+      path = SYSCALLS.calculateAt(dirfd, path);
+      if (amode & ~7) {
+        // need a valid mode
+        return -28;
+      }
+      var lookup = FS.lookupPath(path, { follow: true });
+      var node = lookup.node;
+      if (!node) {
+        return -44;
+      }
+      var perms = '';
+      if (amode & 4) perms += 'r';
+      if (amode & 2) perms += 'w';
+      if (amode & 1) perms += 'x';
+      if (perms /* otherwise, they've just passed F_OK */ && FS.nodePermissions(node, perms)) {
+        return -2;
+      }
+      return 0;
+    } catch (e) {
+    if (typeof FS == 'undefined' || !(e.name === 'ErrnoError')) throw e;
+    return -e.errno;
+  }
+  }
+
+  var setErrNo = (value) => {
+      HEAP32[((___errno_location())>>2)] = value;
+      return value;
+    };
+  
   function ___syscall_fcntl64(fd, cmd, varargs) {
   SYSCALLS.varargs = varargs;
   try {
@@ -6437,10 +6466,6 @@ function GetWindowInnerHeight() { return window.innerHeight; }
       // With CAN_ADDRESS_2GB or MEMORY64, pointers are already unsigned.
       requestedSize >>>= 0;
       abortOnCannotGrowMemory(requestedSize);
-    };
-
-  var _emscripten_run_script = (ptr) => {
-      eval(UTF8ToString(ptr));
     };
 
   var _emscripten_sample_gamepad_data = () => {
@@ -9162,6 +9187,8 @@ var wasmImports = {
   /** @export */
   __assert_fail: ___assert_fail,
   /** @export */
+  __syscall_faccessat: ___syscall_faccessat,
+  /** @export */
   __syscall_fcntl64: ___syscall_fcntl64,
   /** @export */
   __syscall_getcwd: ___syscall_getcwd,
@@ -9510,8 +9537,6 @@ var wasmImports = {
   /** @export */
   emscripten_resize_heap: _emscripten_resize_heap,
   /** @export */
-  emscripten_run_script: _emscripten_run_script,
-  /** @export */
   emscripten_sample_gamepad_data: _emscripten_sample_gamepad_data,
   /** @export */
   emscripten_set_canvas_element_size: _emscripten_set_canvas_element_size,
@@ -9701,9 +9726,9 @@ var wasmImports = {
 Asyncify.instrumentWasmImports(wasmImports);
 var wasmExports = createWasm();
 var ___wasm_call_ctors = createExportWrapper('__wasm_call_ctors');
-var _malloc = createExportWrapper('malloc');
-var _free = createExportWrapper('free');
 var _main = Module['_main'] = createExportWrapper('main');
+var _free = createExportWrapper('free');
+var _malloc = createExportWrapper('malloc');
 var _fflush = Module['_fflush'] = createExportWrapper('fflush');
 var ___errno_location = createExportWrapper('__errno_location');
 var _emscripten_stack_init = () => (_emscripten_stack_init = wasmExports['emscripten_stack_init'])();
@@ -9744,8 +9769,8 @@ var _asyncify_start_unwind = createExportWrapper('asyncify_start_unwind');
 var _asyncify_stop_unwind = createExportWrapper('asyncify_stop_unwind');
 var _asyncify_start_rewind = createExportWrapper('asyncify_start_rewind');
 var _asyncify_stop_rewind = createExportWrapper('asyncify_stop_rewind');
-var ___start_em_js = Module['___start_em_js'] = 92824;
-var ___stop_em_js = Module['___stop_em_js'] = 92897;
+var ___start_em_js = Module['___start_em_js'] = 93784;
+var ___stop_em_js = Module['___stop_em_js'] = 93857;
 
 // include: postamble.js
 // === Auto-generated postamble setup entry stuff ===
