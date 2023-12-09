@@ -174,7 +174,7 @@ double ComputeFrechetDistance(Curve P, Curve Q, FreeSpaceEdgeData *data) {
         else
             frechet_dist_bottom = frechet_dist_eps;
     }
-    GetFreespaceEdgeData(P, Q, frechet_dist_eps, &curr_eps_data);
+    GetFreespaceEdgeData(P, Q, frechet_dist_top, &curr_eps_data);
     *data = curr_eps_data;
     return frechet_dist_top;
 }

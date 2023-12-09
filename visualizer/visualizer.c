@@ -1,8 +1,8 @@
 #include <stdlib.h>
 #include "frechet_dist.h"
 #include "visualizer.h"
-#include "raylib.h"
 
+#include "raylib.h"
 #include "raygui.h"
 
 #define RAYGUI_IMPLEMENTATION
@@ -50,7 +50,7 @@ static void CalcGui(void) {
     curves_panel_rect = (Rectangle) {0.0f, 0.0f, window_sz.width / 2.0f, window_sz.height};
     fsp_panel_rect =
             (Rectangle) {window_sz.width / 2.0f, 0.0f, window_sz.width / 2.0f, window_sz.height};
-    eps_valuebox_rect = (Rectangle) {fsp_panel_rect.x + fsp_panel_rect.width - 100, fsp_panel_rect.y, 100,
+    eps_valuebox_rect = (Rectangle) {fsp_panel_rect.x + fsp_panel_rect.width - 105, fsp_panel_rect.y, 105,
                                      RAYGUI_WINDOWBOX_STATUSBAR_HEIGHT};
     compute_button_rect = (Rectangle) {fsp_panel_rect.x + fsp_panel_rect.width - 210, fsp_panel_rect.y, 100,
                                        RAYGUI_WINDOWBOX_STATUSBAR_HEIGHT};
