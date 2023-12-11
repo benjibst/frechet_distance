@@ -5,7 +5,8 @@
 #include <float.h>
 #include <string.h>
 
-double OrthogonalDistance(const Point2d *const p, Segment seg) {
+double OrthogonalDistance(const Point2d *const p, Segment seg)
+{
     double x2mx1 = seg.B->x - seg.A->x;
     double y2my1 = seg.B->y - seg.A->y;
     double y1my0 = seg.A->y - p->y;
@@ -13,11 +14,19 @@ double OrthogonalDistance(const Point2d *const p, Segment seg) {
     return fabs(x2mx1 * y1my0 - x1mx0 * y2my1) / hypot(x2mx1, y2my1);
 }
 
-static inline int Sign(double f) { return (f >= 0) - (f < 0); }
+double Distance(const Point2d *const p1, const Point2d *const p2)
+{
+    return hypot(p1->x - p2->x, p1->y - p2->y);
+}
 
-LineCircleIntersectType CircleLineIntersection(const Point2d *const center, double eps,
-                                               Segment seg, Point2d *p1,
-                                               Point2d *p2) {
+static inline int Sign(double f)
+{
+    return (f >= 0) - (f < 0);
+}
+
+LineCircleIntersectType
+CircleLineIntersection(const Point2d *const center, double eps, Segment seg, Point2d *p1, Point2d *p2)
+{
     double orthdist = OrthogonalDistance(center, seg);
     if (orthdist > eps)
         return PASSANT;
@@ -46,7 +55,8 @@ LineCircleIntersectType CircleLineIntersection(const Point2d *const center, doub
 // assumes that the point p lies along the line seg and
 // returns how far along the line the point is.
 // if p is equal to seg.p2 returns 1, if p is equal to seg.p1 returns 0
-double PointToParameter(Point2d p, Segment seg) {
+double PointToParameter(Point2d p, Segment seg)
+{
     if (p.x == seg.A->x && p.y == seg.A->y)
         return 0;
     if (p.x == seg.B->x && p.y == seg.B->y)
@@ -60,18 +70,24 @@ double PointToParameter(Point2d p, Segment seg) {
     return lenratio;
 }
 
-Curve AllocateCurve(uint32_t cap) {
+Curve AllocateCurve(uint32_t cap)
+{
     Curve c;
     c.points = malloc(cap * sizeof(Point2d));
+    if (!c.points) {
+        fprintf(stderr, "Failed allocating curve");
+        exit(1);
+    }
     c.n_points = 0;
-    c.xy_min = (Point2d) {FLT_MAX, FLT_MAX}; //2 corners of bounding rect
-    c.xy_max = (Point2d) {FLT_MIN, FLT_MIN};
+    c.xy_min = (Point2d) {DBL_MAX, DBL_MAX}; //2 corners of bounding rect
+    c.xy_max = (Point2d) {-DBL_MAX, -DBL_MAX};
     c.capacity = cap;
     c.n_segments = 0;
     return c;
 }
 
-void AddPointToCurve(Curve *c, Point2d p) {
+void AddPointToCurve(Curve *c, Point2d p)
+{
     if (c->n_points && (c->points[c->n_points - 1].x == p.x) && (c->points[c->n_points - 1].y == p.y))
         return; //dont add repeated points
     if (c->capacity == c->n_points) {
@@ -97,16 +113,15 @@ void AddPointToCurve(Curve *c, Point2d p) {
         c->n_segments++;
 }
 
-void FreeCurve(Curve *c) {
+void FreeCurve(Curve *c)
+{
     if (c->points)
         free(c->points);
     memset(c, 0, sizeof(Curve));
 }
 
 // if param is 0 returns seg.p1-> if param is 1 returns seg.p2->
-Point2d ParameterToPoint(Segment seg, double param) {
-    return (Point2d) {
-            seg.A->x * (1.0 - param) + seg.B->x * param,
-            seg.A->y * (1.0 - param) + seg.B->y * param
-    };
+Point2d ParameterToPoint(Segment seg, double param)
+{
+    return (Point2d) {seg.A->x * (1.0 - param) + seg.B->x * param, seg.A->y * (1.0 - param) + seg.B->y * param};
 }

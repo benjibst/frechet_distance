@@ -67,7 +67,7 @@ void GetFreespaceEdgeData(Curve P, Curve Q, double eps, FreeSpaceEdgeData *edge_
     FreeSpaceEdgesMaybeAlloc(edge_data, P.n_points, Q.n_points);
     for (uint32_t i = 0; i < P.n_points; i++) // for every point of P and every segment of Q
     {
-        for (uint32_t j = 0; j < Q.n_points - 1; j++) {
+        for (uint32_t j = 0; j < Q.n_segments; j++) {
             Segment seg = {Q.points + j, Q.points + j + 1};
             edge_data->reachableQ[index] = GetFreeSpaceCellOneEdge(P.points + i, seg, eps,
                                                                    &(edge_data->edgesQ[index].entry),
@@ -78,7 +78,7 @@ void GetFreespaceEdgeData(Curve P, Curve Q, double eps, FreeSpaceEdgeData *edge_
     edge_data->edgesP = edge_data->edgesQ + index;
     edge_data->reachableP = edge_data->reachableQ + index;
     for (uint32_t i = 0; i < Q.n_points; i++) {
-        for (uint32_t j = 0; j < P.n_points - 1; j++) {
+        for (uint32_t j = 0; j < P.n_segments; j++) {
             Segment seg = {P.points + j, P.points + j + 1};
             edge_data->reachableQ[index] = GetFreeSpaceCellOneEdge(Q.points + i, seg, eps,
                                                                    &(edge_data->edgesQ[index].entry),
@@ -164,7 +164,8 @@ double ComputeFrechetDistance(Curve P, Curve Q, FreeSpaceEdgeData *data) {
     double dy = xy_max_pq.y - xy_min_pq.y;
     double frechet_dist_top = hypot(dx, dy);
     double frechet_dist_eps;
-    double frechet_dist_bottom = 0;
+    double frechet_dist_bottom = Min(Distance(&P.points[0], &Q.points[0]),
+                                     Distance(&P.points[P.n_segments], &Q.points[Q.n_segments]));
     FreeSpaceEdgeData curr_eps_data = {0};
     for (int i = 0; i < FRECHET_DIST_APPROX_STEPS; ++i) {
         frechet_dist_eps = (frechet_dist_top + frechet_dist_bottom) / 2;
