@@ -5,7 +5,8 @@
 #include <string.h>
 
 //if the size needed exceeds the current capacity reallocate the freespace edge data
-static void FreeSpaceEdgesMaybeAlloc(FreeSpaceEdgeData *edge_data, uint32_t np_P, uint32_t np_Q) {
+static void FreeSpaceEdgesMaybeAlloc(FreeSpaceEdgeData *edge_data, uint32_t np_P, uint32_t np_Q)
+{
     size_t n_edges = (np_P - 1) * np_Q + (np_Q - 1) * np_P;
     if (n_edges > edge_data->cap) {
         edge_data->cap = 2 * n_edges;
@@ -25,8 +26,9 @@ static void FreeSpaceEdgesMaybeAlloc(FreeSpaceEdgeData *edge_data, uint32_t np_P
     edge_data->n_points_Q = np_Q;
 }
 
-static bool GetFreeSpaceCellOneEdge(Point2d *p, Segment seg, double eps,
-                                    double *fsp_entry_range_begin, double *fsp_entry_range_end) {
+static bool
+GetFreeSpaceCellOneEdge(Point2d *p, Segment seg, double eps, double *fsp_entry_range_begin, double *fsp_entry_range_end)
+{
     Point2d p1 = {0}, p2 = {0};
     switch (CircleLineIntersection(p, eps, seg, &p1, &p2)) {
         case PASSANT:
@@ -61,7 +63,8 @@ static bool GetFreeSpaceCellOneEdge(Point2d *p, Segment seg, double eps,
     return false;
 }
 
-void GetFreespaceEdgeData(Curve P, Curve Q, double eps, FreeSpaceEdgeData *edge_data) {
+void GetFreespaceEdgeData(Curve P, Curve Q, double eps, FreeSpaceEdgeData *edge_data)
+{
 
     uint32_t index = 0;
     FreeSpaceEdgesMaybeAlloc(edge_data, P.n_points, Q.n_points);
@@ -88,7 +91,8 @@ void GetFreespaceEdgeData(Curve P, Curve Q, double eps, FreeSpaceEdgeData *edge_
     }
 }
 
-void FreeEdgeData(FreeSpaceEdgeData *data) {
+void FreeEdgeData(FreeSpaceEdgeData *data)
+{
     if (data->reachableQ)
         free(data->reachableQ);
     if (data->edgesQ)
@@ -97,7 +101,8 @@ void FreeEdgeData(FreeSpaceEdgeData *data) {
 }
 
 //first check if entry and exit is possible before doing any actual work
-static bool GridEntryExitPossible(FreeSpaceEdgeData *edges) {
+static bool GridEntryExitPossible(FreeSpaceEdgeData *edges)
+{
     if (!(edges->reachableP[0] && edges->reachableQ[0])) return false;
     if (!(edges->reachableP[(edges->n_points_P - 1) * edges->n_points_Q - 1] &&
           edges->reachableQ[edges->n_points_P * (edges->n_points_Q - 1) - 1])) //check if exit of P and Q are possible
@@ -114,7 +119,8 @@ static bool TraverseGridRight(FreeSpaceEdgeData *edges, FreespaceCellPos prev_ce
 static bool TraverseGridUp(FreeSpaceEdgeData *edges, FreespaceCellPos prev_cell, double prev_entry);
 
 //recursively traverse the free space grid upwards or go right if upwards doesnt work
-static bool TraverseGridUp(FreeSpaceEdgeData *edges, FreespaceCellPos prev_cell, double prev_entry) {
+static bool TraverseGridUp(FreeSpaceEdgeData *edges, FreespaceCellPos prev_cell, double prev_entry)
+{
     FreespaceCellPos curr_cell = {prev_cell.x, prev_cell.y + 1};
     if (curr_cell.y == edges->n_points_Q) return false;
     //return false if the bottom segment of the current cell is not reachable
@@ -132,7 +138,8 @@ static bool TraverseGridUp(FreeSpaceEdgeData *edges, FreespaceCellPos prev_cell,
 }
 
 //recursively traverse the free space grid to the right or go upwards if right doesnt work
-static bool TraverseGridRight(FreeSpaceEdgeData *edges, FreespaceCellPos prev_cell, double prev_entry) {
+static bool TraverseGridRight(FreeSpaceEdgeData *edges, FreespaceCellPos prev_cell, double prev_entry)
+{
     FreespaceCellPos curr_cell = {prev_cell.x + 1, prev_cell.y};
     if (curr_cell.x == edges->n_points_P) return false;
     //return false if the left segment of the current cell is not reachable
@@ -149,7 +156,8 @@ static bool TraverseGridRight(FreeSpaceEdgeData *edges, FreespaceCellPos prev_ce
     return TraverseGridUp(edges, curr_cell, 0.0f);
 }
 
-bool FrechetDistLeqEps(FreeSpaceEdgeData *edges) {
+bool FrechetDistLeqEps(FreeSpaceEdgeData *edges)
+{
     if (!GridEntryExitPossible(edges)) return false;
     FreespaceCellPos curr_cell = {0, 0};
     if (TraverseGridUp(edges, curr_cell, 0.0f)) return true;
@@ -157,15 +165,15 @@ bool FrechetDistLeqEps(FreeSpaceEdgeData *edges) {
     return false;
 }
 
-double ComputeFrechetDistance(Curve P, Curve Q, FreeSpaceEdgeData *data) {
+double ComputeFrechetDistance(Curve P, Curve Q, FreeSpaceEdgeData *data)
+{
     Point2d xy_max_pq = {Max(P.xy_max.x, Q.xy_max.x), Max(P.xy_max.y, Q.xy_max.y)};
     Point2d xy_min_pq = {Min(P.xy_min.x, Q.xy_min.x), Min(P.xy_min.y, Q.xy_min.y)};
     double dx = xy_max_pq.x - xy_min_pq.x;
     double dy = xy_max_pq.y - xy_min_pq.y;
     double frechet_dist_top = hypot(dx, dy);
     double frechet_dist_eps;
-    double frechet_dist_bottom = Min(Distance(&P.points[0], &Q.points[0]),
-                                     Distance(&P.points[P.n_segments], &Q.points[Q.n_segments]));
+    double frechet_dist_bottom = 0;
     FreeSpaceEdgeData curr_eps_data = {0};
     for (int i = 0; i < FRECHET_DIST_APPROX_STEPS; ++i) {
         frechet_dist_eps = (frechet_dist_top + frechet_dist_bottom) / 2;

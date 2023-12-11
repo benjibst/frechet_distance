@@ -11,7 +11,7 @@
 #define Max(x, y) ((x) > (y) ? (x) : (y))
 
 typedef struct {
-    float entry, exit;
+    double entry, exit;
 } FreeSpaceEdge;
 
 typedef struct {
