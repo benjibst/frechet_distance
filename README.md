@@ -39,6 +39,10 @@ Open a developer command prompt window, change to the build directory and run:
 ```
 MSBuild.exe .\frechet_distance.vcxproj
 ```
+## Build issues
+If on linux it says X11 not found, install libx11-dev and xorg-dev
+
+
 
 
 
